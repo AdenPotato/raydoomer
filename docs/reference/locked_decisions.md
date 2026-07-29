@@ -23,7 +23,7 @@ The registry of decisions that are settled and should not be re-litigated casual
 | Base library         | raylib 5.x (window, input, audio, 3D rendering)                        | Hard      |
 | Build tooling        | CMake + FetchContent                                                   | Hard      |
 | Target platform      | Windows, built with MinGW-w64 (C++23 rules out MSVC)                   | Hard      |
-| Dev environment      | WSL2 + WSLg; Linux build for iteration                                 | Soft      |
+| Dev environment      | WSL2; cross-compile to Windows and run the .exe on the host (ADE-22)   | Hard      |
 | Testing              | GoogleTest + GoogleMock                                                | Hard      |
 | Data / save format   | JSON via nlohmann/json                                                 | Hard      |
 | Physics              | Box3D (erincatto/box3d), MIT, C17. Run single-threaded for determinism | Hard      |
@@ -77,6 +77,6 @@ Full specification: [runtime_architecture.md](../design/runtime_architecture.md)
 Unsettled items that are not yet locked. Convert each into a tracked work item before session close (Enforcement Rule 6) - do not leave open-ended prose here long-term.
 
 - **CI provider not chosen** - the framework assumes CI gates block merges ([core_protocol.md](../protocol/core_protocol.md#pr-checklist)), but no provider is selected. Needs a decision before the first PR.
-- **WSLg GPU acceleration unverified** - `/dev/dri` is absent on the dev host and the acceleration check has not been run. Must be proven before further work depends on the render path.
+- **The game's real frame budget is unmeasured.** ADE-22 proved the *baseline* is negligible (0.4 ms avg for a trivial scene), not that a populated level holds 6.94 ms. Re-measure once sprites, physics, and a HUD are in a level.
 - **`ADE-21` mapping is underscoped** - the brush level format means the map must be derived from geometry rather than read from a grid. Rescope before the issue is picked up.
 - **Level authoring ergonomics** - brush lists are hand-authored JSON. Spike after roughly three levels exist to decide whether editor tooling is needed.

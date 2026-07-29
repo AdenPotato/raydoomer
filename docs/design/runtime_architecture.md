@@ -15,8 +15,8 @@
 | Base library  | raylib 5.x - window, input, audio, 3D rendering. The game owns its own main loop.          |
 | Language      | C++23                                                                                      |
 | Build         | CMake + FetchContent                                                                       |
-| Target        | Windows (primary), built with MinGW-w64                                                    |
-| Dev host      | WSL2 + WSLg, Linux build for iteration                                                     |
+| Target        | Windows, cross-compiled with MinGW-w64 (verified, ADE-22)                                  |
+| Dev host      | WSL2; cross-compile to Windows, run the .exe natively on the host                          |
 | Tests         | GoogleTest + GoogleMock                                                                    |
 | Entity model  | Object-oriented hierarchy with injected context                                            |
 | Update order  | Explicit ordered calls in `World::tick`                                                    |
@@ -308,12 +308,12 @@ Explicitly deferred. Naming these is what stops speculative generality leaking i
 
 ## Open risks
 
-| Risk                                                                              | Action                                                                 |
-|-----------------------------------------------------------------------------------|------------------------------------------------------------------------|
-| WSLg GPU acceleration is unverified; `/dev/dri` is absent on this host    | First task proves an accelerated raylib window before anything is built on it. |
-| `ADE-21` mapping is underscoped - deriving a map from brush geometry is materially harder than a grid   | Rescope the issue before it is picked up.        |
-| Doom assets cannot be distributed                                                | FreeDoom swap verified before any release; `resources/` gitignored.     |
-| Brush lists get painful to hand-author past a few rooms                          | Spike issue evaluates authoring ergonomics after roughly three levels.  |
+| Risk                                                                                    | Action                                                                 |
+|-----------------------------------------------------------------------------------------|------------------------------------------------------------------------|
+| The game's real frame budget is unmeasured. ADE-22 measured a trivial scene, not a populated level | Re-measure once sprites, physics, and a HUD are in a level. |
+| `ADE-21` mapping is underscoped - deriving a map from brush geometry is materially harder than a grid         | Rescope the issue before it is picked up.        |
+| Doom assets cannot be distributed                                                      | FreeDoom swap verified before any release; `resources/` gitignored.     |
+| Brush lists get painful to hand-author past a few rooms                                | Spike issue evaluates authoring ergonomics after roughly three levels.  |
 
 ---
 
