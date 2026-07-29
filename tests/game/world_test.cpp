@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 
 #include "engine/event_dispatch.h"
+#include "engine/physics.h"
 #include "engine/rng.h"
 #include "game/world.h"
 
@@ -132,6 +133,35 @@ TEST(World, ASaveIsDeliberatelyLossyAboutLevelScopedState) {
 
     EXPECT_EQ(world.tickCount(), 0);
     EXPECT_FLOAT_EQ(world.elapsedSeconds(), 0.0f);
+}
+
+TEST(World, StepsPhysicsExactlyOncePerTick) {
+    // "Stepped exactly once per fixed tick, never per rendered frame"
+    // (locked_decisions.md). Asserted by comparison rather than by counting:
+    // a body dropped in the world must land in precisely the same place as one
+    // dropped in a standalone physics world stepped the same number of times.
+    // Stepping twice per tick, or not at all, changes the answer.
+    engine::BodyDef def;
+    def.type = engine::BodyType::Dynamic;
+    def.position = engine::Point3{ 0.0, 100.0, 0.0 };
+    def.shape = engine::SphereShape{ 0.5f };
+
+    game::World world;
+    Context context;
+    const auto viaWorld = world.physics().createBody(def);
+
+    engine::PhysicsWorld standalone;
+    engine::EventDispatcher idle;
+    idle.freeze();
+    const auto viaStandalone = standalone.createBody(def);
+
+    for (int i = 0; i < 60; ++i) {
+        world.tick(kTick, context.rng, context.events);
+        standalone.step(kTick, idle);
+    }
+
+    EXPECT_EQ(world.physics().position(viaWorld)->y,
+              standalone.position(viaStandalone)->y);
 }
 
 TEST(World, TickingIsDeterministicForAGivenSeed) {
