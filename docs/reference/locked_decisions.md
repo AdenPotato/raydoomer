@@ -27,7 +27,7 @@ The registry of decisions that are settled and should not be re-litigated casual
 | Testing              | GoogleTest + GoogleMock                                                | Hard      |
 | Data / save format   | JSON via nlohmann/json                                                 | Hard      |
 | Physics              | Box3D (erincatto/box3d), MIT, C17. Run single-threaded for determinism | Hard      |
-| CI                   | Not yet chosen - see Open Questions                                    | Soft      |
+| CI                   | GitHub Actions. Gates: layer boundaries, headless tests, Windows build | Hard      |
 
 ---
 
@@ -78,7 +78,7 @@ Unsettled items that are not yet locked. Convert each into a tracked work item b
 
 - **Box3D is pre-release.** The repository publishes no tags, so the build pins commit `781673b` off `main`. The API may churn without a deprecation path, and there is no release cadence to track. Revisit if upstream tags a release, or if an API break costs real time.
 - **The engine/game layer boundary is unverified.** `target_link_libraries(platform PRIVATE raylib)` prevents include leakage structurally, but `src/game/` is empty, so nothing exercises it yet. Add a CI check that no third-party header is reachable from `src/game/` (see the CI issue).
-- **CI provider not chosen** - the framework assumes CI gates block merges ([core_protocol.md](../protocol/core_protocol.md#pr-checklist)), but no provider is selected. Needs a decision before the first PR.
+- **Branch protection is not enabled.** CI now runs on every PR, but nothing yet *requires* the checks to pass before merge - that is a repository setting, not a workflow file. Until it is on, the gates are advisory.
 - **The game's real frame budget is unmeasured.** ADE-22 proved the *baseline* is negligible (0.4 ms avg for a trivial scene), not that a populated level holds 6.94 ms. Re-measure once sprites, physics, and a HUD are in a level.
 - **`ADE-21` mapping is underscoped** - the brush level format means the map must be derived from geometry rather than read from a grid. Rescope before the issue is picked up.
 - **Level authoring ergonomics** - brush lists are hand-authored JSON. Spike after roughly three levels exist to decide whether editor tooling is needed.
