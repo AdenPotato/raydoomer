@@ -164,7 +164,21 @@ Before opening a PR, all of the following must be completed.
 
 #### CI gates - all blocking
 
-CI may run more than lint/test/typecheck, and **every gate blocks the merge**. A PR is not green until all pass; most have a local equivalent, so run it before pushing rather than discovering it in CI. Typical gates: typecheck (strict), coverage floors, dead-code scan, docstring presence, and any secret / supply-chain / container scans. Document your project's exact gate set here.
+**Every gate blocks the merge.** A PR is not green until all pass. Each has a local equivalent - run it before pushing rather than discovering it in CI.
+
+CI runs on GitHub Actions ([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)), on every pull request into `dev` or `main`.
+
+| Gate                     | What it proves                                                         | Local equivalent                        |
+|--------------------------|------------------------------------------------------------------------|-----------------------------------------|
+| Layer boundaries         | `game -> engine -> platform` is one way; no third-party header leaks   | `./scripts/check-layer-boundaries.sh`   |
+| Headless tests           | The suite passes with no window, no GPU, no Windows runner             | `ctest --preset linux-test`             |
+| Windows cross-compile    | The game still builds for its target, and the artifact is a real PE    | `cmake --build --preset windows-game`   |
+
+**Not yet gated, and deliberately named rather than left implicit:**
+
+- **Golden-image tests** run inside the headless-tests gate automatically once any exist. None do yet.
+- **Running the exe** would need a Windows runner. The build succeeding is the gate; the binary is uploaded as an artifact for manual verification.
+- **Coverage floors, dead-code scan, and docstring presence** are not configured. Add them here when they are, rather than assuming they run.
 
 ---
 

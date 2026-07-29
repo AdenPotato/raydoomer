@@ -1,0 +1,109 @@
+name: CI
+
+# Every job here is a blocking gate (core_protocol.md - CI gates, all blocking).
+# A PR is not green until all pass.
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+
+# A new push supersedes an in-flight run on the same branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Stable location so FetchContent sources can be cached across runs and
+  # shared between the two build configurations.
+  FETCHCONTENT_BASE_DIR: ${{ github.workspace }}/.deps
+
+jobs:
+  boundaries:
+    name: Layer boundaries
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check game -> engine -> platform is one way
+        run: ./scripts/check-layer-boundaries.sh
+
+  tests:
+    name: Headless tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The runner's default is GCC 13, several versions behind the dev host.
+      # A gap that wide produces CI-only surprises: GCC 13 compiles C++23 but
+      # reports __cplusplus as 202100L, which failed this job on its first run.
+      # Pinning a newer compiler keeps CI and local closer together.
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build g++-14
+
+      - name: Use GCC 14
+        run: |
+          echo "CC=gcc-14"  >> "$GITHUB_ENV"
+          echo "CXX=g++-14" >> "$GITHUB_ENV"
+
+      - name: Cache fetched dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.FETCHCONTENT_BASE_DIR }}
+          key: deps-test-${{ runner.os }}-${{ hashFiles('CMakeLists.txt') }}
+          restore-keys: deps-test-${{ runner.os }}-
+
+      - name: Configure
+        run: cmake --preset linux-test
+
+      - name: Build
+        run: cmake --build --preset linux-test
+
+      # No window, no GPU, no Windows runner. That is the whole point of the
+      # linux-test preset: it does not even fetch raylib, so a test that needs
+      # a window fails at configure time rather than passing here and breaking
+      # later. Golden-image tests will run in this job once any exist.
+      - name: Test
+        run: ctest --preset linux-test
+
+  windows-binary:
+    name: Windows cross-compile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools and MinGW-w64
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build mingw-w64
+
+      - name: Cache fetched dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.FETCHCONTENT_BASE_DIR }}
+          key: deps-win-${{ runner.os }}-${{ hashFiles('CMakeLists.txt') }}
+          restore-keys: deps-win-${{ runner.os }}-
+
+      - name: Configure
+        run: cmake --preset windows-game
+
+      - name: Build
+        run: cmake --build --preset windows-game
+
+      # Proves the artifact is genuinely a Windows binary rather than a silently
+      # native one. Running it would need a Windows runner; the build succeeding
+      # is the gate, and the exe is uploaded for manual verification.
+      - name: Verify the artifact is a Windows PE binary
+        run: |
+          file build/windows-game/src/doomer.exe
+          file build/windows-game/src/doomer.exe | grep -q 'PE32+ executable' \
+            || { echo "not a Windows PE binary"; exit 1; }
+
+      - name: Upload doomer.exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: doomer-windows
+          path: build/windows-game/src/doomer.exe
+          if-no-files-found: error
