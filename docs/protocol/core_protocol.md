@@ -78,8 +78,10 @@ doomer/
 │   ├── game/                     ← entities, systems, combat, loot, levels, save
 │   └── main.cpp                  ← bootstrap
 ├── tests/
+│   ├── platform/                 ← seam tests, gmock fakes
 │   ├── engine/                   ← unit tests, no hardware
 │   ├── game/                     ← simulation tests, headless
+│   ├── support/                  ← test doubles (manual clock, fakes)
 │   └── golden/                   ← golden-image references
 ├── data/                         ← JSON tunables, content definitions, levels
 ├── assets/                       ← committed art (placeholder, generated)

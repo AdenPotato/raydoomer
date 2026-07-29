@@ -54,6 +54,10 @@ if(NOT CMAKE_CROSSCOMPILING)
   )
   FetchContent_MakeAvailable(googletest)
 
+  # platform_core only; src/CMakeLists.txt stops before the raylib targets when
+  # not cross-compiling, so nothing here can pull in a window.
+  add_subdirectory(src)
+
   enable_testing()
   add_subdirectory(tests)
 else()
