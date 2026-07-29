@@ -4,6 +4,9 @@
 add_executable(engine_tests
   engine/dependencies_test.cpp
   engine/physics_test.cpp
+  engine/fixed_step_test.cpp
+  engine/simulation_constants_test.cpp
+  game/world_test.cpp
   platform/clock_test.cpp
   platform/file_system_test.cpp
   platform/seam_test.cpp
@@ -18,6 +21,8 @@ target_link_libraries(engine_tests PRIVATE
   nlohmann_json::nlohmann_json
   box3d::box3d
   platform_core
+  engine
+  game
 )
 
 include(GoogleTest)

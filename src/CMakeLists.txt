@@ -17,6 +17,21 @@ add_library(platform_core STATIC
 )
 target_include_directories(platform_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
+# Engine: no third-party dependency, no game nouns. Builds in both
+# configurations so the headless tests exercise the real thing.
+add_library(engine STATIC
+  engine/fixed_step.cpp
+)
+target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+# Game: the rules. Depends on engine, never on platform or a third-party
+# library - the layer-boundary gate enforces that.
+add_library(game STATIC
+  game/world.cpp
+)
+target_include_directories(game PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(game PUBLIC engine)
+
 if(NOT CMAKE_CROSSCOMPILING)
   return()
 endif()
@@ -34,7 +49,7 @@ target_link_libraries(platform_raylib
 add_executable(doomer
   main.cpp
 )
-target_link_libraries(doomer PRIVATE platform_raylib)
+target_link_libraries(doomer PRIVATE platform_raylib game)
 
 if(WIN32)
   target_link_libraries(doomer PRIVATE opengl32 gdi32 winmm)

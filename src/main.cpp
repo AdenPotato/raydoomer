@@ -1,13 +1,20 @@
+#include "engine/fixed_step.h"
+#include "engine/simulation.h"
+#include "game/world.h"
+#include "platform/clock.h"
 #include "platform/raylib/raylib_audio_device.h"
 #include "platform/raylib/raylib_input.h"
 #include "platform/raylib/raylib_window.h"
 
-// Bootstrap. This is the one place concrete platform implementations are
-// chosen; everything above receives them as interfaces.
+// Bootstrap and the frame loop.
 //
-// The fixed-step loop, the world, and the systems arrive with ADE-10. What is
-// here is the minimum that proves the seam is wired: acquire, run frames,
-// release - with every acquire matched, including on the failure path.
+// This is the one place concrete platform implementations are chosen; everything
+// above receives them as interfaces. The loop itself owns no rules: it decides
+// only *when* the simulation advances, and hands presentation an interpolation
+// alpha to draw with.
+//
+// Simulation runs on the fixed step; presentation on the variable one. Nothing
+// smoothed for the eye may feed back into the rules (engine_protocol.md).
 int main() {
     platform::RaylibWindow window;
     if (!window.open(1280, 720, "doomer")) {
@@ -23,11 +30,32 @@ int main() {
     }
 
     platform::RaylibInput input;
+    platform::SystemClock clock;
+
+    engine::FixedStepAccumulator accumulator{ engine::SIM_TICK_SECONDS,
+                                              engine::MAX_CATCHUP_TICKS };
+    game::World world;
+
+    double previousSeconds = clock.nowSeconds();
 
     while (!window.shouldClose()) {
+        // Time enters the program here and nowhere else. Everything downstream
+        // receives it as a parameter (seam 1, game_test_protocol.md).
+        const double now = clock.nowSeconds();
+        const double frameDelta = now - previousSeconds;
+        previousSeconds = now;
+
         input.poll();
 
+        const engine::StepResult step = accumulator.advance(frameDelta);
+        for (int i = 0; i < step.ticks; ++i) {
+            world.tick(static_cast<float>(engine::SIM_TICK_SECONDS));
+        }
+
         window.beginFrame();
+        // Presentation draws here, interpolating by step.alpha. Nothing renders
+        // yet; the renderer arrives with the sprite and HUD work.
+        (void)step.alpha;
         window.endFrame();
     }
 
