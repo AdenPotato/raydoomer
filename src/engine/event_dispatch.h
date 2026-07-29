@@ -1,5 +1,7 @@
 #pragma once
 
+#include "engine/violation.h"
+
 #include <cstdint>
 #include <functional>
 #include <string>
@@ -20,18 +22,6 @@ struct SystemId {
 
     friend bool operator==(const SystemId&, const SystemId&) = default;
 };
-
-/// Called when a guardrail is violated.
-///
-/// @remarks
-/// Injected rather than global, so two tests in the same process cannot
-/// contaminate each other (seam 4, game_test_protocol.md). The default reports
-/// to stderr and aborts in a development build: a violated invariant is
-/// programmer error and should be loud (engine_protocol.md).
-using ViolationReporter = std::function<void(std::string_view message)>;
-
-/// The default reporter: loud in development, still reported in release.
-ViolationReporter defaultViolationReporter();
 
 /// Immediate event dispatch with determinism guardrails.
 ///

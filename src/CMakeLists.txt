@@ -21,10 +21,13 @@ target_include_directories(platform_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # configurations so the headless tests exercise the real thing.
 add_library(engine STATIC
   engine/event_dispatch.cpp
+  engine/violation.cpp
   engine/rng.cpp
   engine/fixed_step.cpp
+  engine/physics.cpp
 )
 target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(engine PRIVATE box3d::box3d)
 
 # Game: the rules. Depends on engine, never on platform or a third-party
 # library - the layer-boundary gate enforces that.

@@ -6,12 +6,15 @@
 namespace game {
 
 void World::tick(float dt, engine::Rng& rng, engine::EventDispatcher& events) {
-    // Systems are called from here, in an explicit fixed order, from ADE-12
-    // onward. Until one exists, taking the context without using it is what
-    // keeps the contract honest: the signature is locked, and a system added
-    // later needs no change to the loop that drives it.
+    // Gameplay systems are called from here, in an explicit fixed order, from
+    // ADE-12 onward. Until one exists, taking the RNG without using it keeps the
+    // contract honest: the signature is locked, so a system added later needs no
+    // change to the loop that drives it.
     (void)rng;
-    (void)events;
+
+    // Exactly one physics step per simulation tick, never per rendered frame.
+    // Contacts publish through the same dispatcher the gameplay systems use.
+    physics_.step(dt, events);
 
     ++tickCount_;
     elapsedSeconds_ += dt;

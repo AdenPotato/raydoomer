@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/physics.h"
 #include "game/inventory.h"
 #include "game/level_progress.h"
 #include "game/player_state.h"
@@ -47,12 +48,18 @@ public:
     /// @param rng    Seeded randomness. Systems receive it; they never fetch it.
     /// @param events Systems publish through this rather than calling each other.
     ///
-    /// @note Currently advances the tick counter and simulated clock only. There
-    ///       are no systems yet - they arrive from ADE-12 onward and will be
-    ///       called from here in an explicit, fixed order
+    /// @note Steps physics exactly once, then advances the tick counter and
+    ///       simulated clock. Gameplay systems arrive from ADE-12 onward and
+    ///       are called from here in an explicit, fixed order
     ///       (runtime_architecture.md). The signature is the locked contract
     ///       they plug into.
     void tick(float dt, engine::Rng& rng, engine::EventDispatcher& events);
+
+    /// The physics world. Owned here so it is stepped exactly once per
+    /// simulation tick, structurally rather than by convention: a caller cannot
+    /// step it per rendered frame because it does not reach it.
+    engine::PhysicsWorld& physics() { return physics_; }
+    const engine::PhysicsWorld& physics() const { return physics_; }
 
     PlayerState& player() { return player_; }
     const PlayerState& player() const { return player_; }
@@ -87,6 +94,8 @@ public:
     void restore(const SaveData& save);
 
 private:
+    engine::PhysicsWorld physics_;
+
     PlayerState player_;
     Inventory inventory_;
     LevelProgress progress_;
