@@ -17,7 +17,7 @@ A good story is small, outcome-focused, and testable. Title -> statement -> cont
 - **Observed:** what happens.
 - **Expected:** what should happen.
 - **Steps to reproduce:** numbered, minimal.
-- **Environment:** service/SPA + version; browser/OS if relevant.
+- **Environment:** build (commit or version) + platform; GPU and driver if relevant.
 
 **Context / description:** the *why*, with links to designs, specs, or related issues. Keep it short - link rather than inline.
 
@@ -30,7 +30,7 @@ For a complex flow, write them as Gherkin instead:
 
 **Out of scope (non-goals):** what this story explicitly does not cover - prevents scope creep.
 
-**Dependencies:** blocked-by / blocks `ADE-<n>`; any cross-repo coordination (a provider API change a consumer needs - see [integration_protocol.md](../protocol/integration_protocol.md)).
+**Dependencies:** blocked-by / blocks `ADE-<n>`; any cross-repo coordination (a provider API change a consumer needs - see [engine_api_protocol.md](../protocol/engine_api_protocol.md)).
 
 **Definition of Done:** acceptance criteria met; tests written test-first and green; any API change backward-compatible (or a new version); docs / locked decisions updated; merged to `dev`. The full gate is the [PR Checklist](../protocol/core_protocol.md#pr-checklist).
 
@@ -62,9 +62,10 @@ Closes ADE-<n>
 - QA checklist: <inline checkboxes for app-facing changes, or "n/a">
 
 ## Risk & rollout
-- Backward-compatible API change? (services deploy independently - integration_protocol) yes / no
-- Data: new indexes / ES mapping change / reindex needed? yes / no
-- Anything to watch after merge (config, feature flag, deploy order).
+- Engine API change? (additive, or deprecated with callers migrated - engine_api_protocol) yes / no
+- Data: content or save schema change / migration needed? yes / no
+- Determinism: does this touch the tick, the RNG, or iteration order? yes / no
+- Anything to watch after merge (frame budget, new tunables, asset dependencies).
 ```
 
 UI change? Add screenshots or a short clip. End the body with the project's configured attribution trailer ([CLAUDE.md](../../CLAUDE.md#commit-messages-and-pull-requests)) - no other auto-generated footer.

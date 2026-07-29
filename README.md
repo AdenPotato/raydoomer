@@ -23,7 +23,7 @@ Working with an AI agent across many sessions tends to drift - conventions get r
 | [docs/](docs)                     | The canonical, editor-neutral framework - protocols, reference, design specs, changelog. The single source both editors read.                              |
 | [CLAUDE.md](CLAUDE.md)            | **Claude Code:** auto-loaded every session - behavior rules, response style, git-safety guarantees, TDD rule.                                              |
 | [.claude/skills/](.claude/skills) | **Claude Code:** ordered, test-first checklists invoked with `/skill-name`; one `<name>/SKILL.md` folder each.                                             |
-| [.claude/agents/](.claude/agents) | **Claude Code:** role subagents - `frontend`, `backend`, `integration` - each owning one surface.                                                          |
+| [.claude/agents/](.claude/agents) | **Claude Code:** role subagents - `simulation`, `presentation`, `content` - each owning one surface.                                                       |
 | [.windsurf/](.windsurf)           | **Windsurf (Cascade):** the native twin - rules, workflows, and skills - all pointing at the same `docs/`. See [.windsurf/README.md](.windsurf/README.md). |
 
 Full documentation map: [docs/README.md](docs/README.md).

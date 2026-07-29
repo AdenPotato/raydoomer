@@ -16,9 +16,9 @@ This page is the **navigation map** (what each doc/folder is). Per-file **update
 |-------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
 | [session_protocol.md](protocol/session_protocol.md)         | Session lifecycle, enforcement rules, file inventory.                                         |
 | [core_protocol.md](protocol/core_protocol.md)               | Shared dev core: TDD, branching, folder structure, naming, code quality, commits, docstrings. |
-| [frontend_protocol.md](protocol/frontend_protocol.md)       | UI / client surface rules.                                                                    |
-| [backend_protocol.md](protocol/backend_protocol.md)         | Service + data layer rules.                                                                   |
-| [integration_protocol.md](protocol/integration_protocol.md) | The API seam between services and consumers.                                                  |
+| [presentation_protocol.md](protocol/presentation_protocol.md)                                                 | Render, camera, sprites, HUD, audio output. |
+| [content_protocol.md](protocol/content_protocol.md)                                                   | Content definitions, loaders, resources, save data. |
+| [engine_api_protocol.md](protocol/engine_api_protocol.md)                                                              | Changing the engine/game boundary. |
 | [engine_protocol.md](protocol/engine_protocol.md)           | Engine-code rules: the game/engine boundary, resource lifetime, platform seam, frame budget.  |
 | [gameplay_protocol.md](protocol/gameplay_protocol.md)       | Gameplay-code rules: tunables in data, feel requests, frame-rate independence.                |
 | [game_test_protocol.md](protocol/game_test_protocol.md)     | Test-first for game code: the seams, time control, golden images, the feel exception.         |

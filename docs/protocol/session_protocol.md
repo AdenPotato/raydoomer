@@ -96,13 +96,13 @@ When initiating a design session (e.g., data model, verification model, API stru
 
 ## Working with Agents + Skills
 
-The role **agents** (`frontend`, `backend`, `integration`) and the scaffolding **skills** (`/new-screen`, `/new-endpoint`, `/new-contract`, `/db-change`) are how the work inside a Tracked session gets executed. This is the operating manual for that loop.
+The role **agents** (`simulation`, `presentation`, `content`) and the scaffolding **skills** (`/new-system`, `/new-hud`, `/engine-api-change`, `/data-change`) are how the work inside a Tracked session gets executed. This is the operating manual for that loop.
 
 ### What they are (and are not)
 
 - **Agents are in-session subagents, not separate terminals.** You run one session in the repo. When it delegates to a role agent, that agent runs as a scoped child with its own context and reports back into the same session. There is no terminal-per-role, no agent that pulls its own ticket, and no agent that opens its own PR.
-- **One agent owns one surface.** `frontend` = the UI / client surface; `backend` = the service + data layer; `integration` = the API seam (it delegates the deep service and UI work to the other two and owns only that both sides agree). Each agent defers to its protocol (`*_protocol.md`) rather than restating it.
-- **Skills scaffold the test-first change.** A skill is the ordered checklist for adding a unit of work the right way: failing test first, tokens or contract honored, green. `/new-contract` runs before `/new-endpoint` or `/new-screen` whenever the change needs a new shared shape.
+- **One agent owns one surface.** `simulation` = engine subsystems and gameplay rules; `presentation` = everything the player sees and hears; `content` = definitions, loaders, resources, and save data. Each agent defers to its protocol (`*_protocol.md`) rather than restating it. [engine_api_protocol.md](engine_api_protocol.md) is owned by none of them and obeyed by all three, the same way `core_protocol.md` is.
+- **Skills scaffold the test-first change.** A skill is the ordered checklist for adding a unit of work the right way: failing test first, tunables in data, tokens honored, green. `/engine-api-change` runs before `/new-system` or `/new-hud` whenever the change needs something the engine API does not yet expose; `/data-change` runs first when it needs a new content or save shape.
 
 ### The loop (one work item, pick to merge)
 
@@ -129,18 +129,18 @@ Adapt the source-tree rows to your repo layout. The doc rows below are the frame
 | File                                  | Purpose                                                                                              | Update rule                                                    |
 |---------------------------------------|------------------------------------------------------------------------------------------------------|----------------------------------------------------------------|
 | .claude/skills/<name>/SKILL.md        | Project-level skills, one folder each. Invoked with `/skill-name`.                                   | Add/update when session skills change. Version-controlled.     |
-| .claude/agents/                       | Role subagents (`frontend`, `backend`, `integration`).                                               | Update when a role's surface or rules change.                  |
+| .claude/agents/ | Role subagents (`simulation`, `presentation`, `content`).                                                                                   | Update when a role's surface or rules change. |
 | CLAUDE.md                             | Auto-loaded every session. Behavior rules.                                                           | Surgical edits only. Never rewrite in full.                    |
 | .windsurf/rules/                      | Editor rules: always-on core + per-surface role rules (model_decision).                              | Update when a behavior rule or role surface changes.           |
 | .windsurf/workflows/                  | Slash-invoked session ceremonies (session-start, session-end, promote).                              | Update when a session-ceremony workflow changes.               |
-| .windsurf/skills/                     | Scaffold skills (new-*, db-change); one SKILL.md per folder.                                         | Update when a scaffold skill changes.                          |
+| .windsurf/skills/ | Scaffold skills (new-*, data-change, engine-api-change); one SKILL.md per folder.                                                                 | Update when a scaffold skill changes. |
 | README.md                             | The project brand; what this project is.                                                             | Update when project scope changes.                             |
 | docs/README.md                        | Index/map of the docs tree (folders + per-file); navigation entry point.                             | Update when a doc or folder is added, moved, or removed.       |
 | docs/protocol/session_protocol.md     | This file. Session rules and conventions.                                                            | Update when the workflow changes.                              |
 | docs/protocol/core_protocol.md        | Shared dev core: TDD loop, branching, folder structure, naming, code quality, commits, docstrings.   | Update when a cross-cutting convention changes.                |
-| docs/protocol/frontend_protocol.md    | UI / client surface rules: structure, theming, testing.                                              | Update when a frontend convention or token rule changes.       |
-| docs/protocol/backend_protocol.md     | Service + data-layer rules: routes/handlers, data access, backend testing.                           | Update when a service or data-layer convention changes.        |
-| docs/protocol/integration_protocol.md | The API seam: both-sides-test-first, typed client, mock->live cutover.                               | Update when the contract, client, or cutover approach changes. |
+| docs/protocol/presentation_protocol.md | Presentation rules: render, camera, sprites, HUD, audio output.                                                  | Update when a presentation or token rule changes. |
+| docs/protocol/content_protocol.md | Content rules: definitions, loaders, resources, save data and migrations.                                             | Update when a content or save convention changes. |
+| docs/protocol/engine_api_protocol.md | The engine/game boundary: additive change, both-sides test-first, library wrapping.                                           | Update when the boundary rules change. |
 | docs/protocol/engine_protocol.md      | Engine code: game/engine boundary, resource lifetime, platform seam, determinism, frame budget.      | Update when an engine-layer convention changes.                |
 | docs/protocol/gameplay_protocol.md    | Gameplay code: tunables in data, feel requests, behavior vs balance, frame-rate independence.        | Update when a gameplay convention changes.                     |
 | docs/protocol/game_test_protocol.md   | Test-first for game code: per-layer tests, the four seams, golden images, the feel exception.        | Update when the game testing standard changes.                 |
@@ -203,8 +203,8 @@ A generic flow for keeping design docs and the shared vocabulary in sync when a 
 8. Document Table Requirement
    - When updating a table in a markdown file, preserve the existing column formatting and spacing for readability without a markdown renderer.
 9. Test-First Requirement
-   - New behavior is written **test-first**: a failing test capturing the expected behavior must exist (and be shown failing) before the implementation is written. Applies to service endpoints, API contract logic, and UI components/hooks.
-   - Schema/index/mapping work uses spec-driven integration tests written in the same change (the documented exception - you cannot query a collection or index until it exists). Any other exception requires a stated reason.
+   - New behavior is written **test-first**: a failing test capturing the expected behavior must exist (and be shown failing) before the implementation is written. Applies to engine subsystems, gameplay rules, content schemas, and presentation logic; an engine API change is test-first on **both** sides.
+   - Feel-tuned values and visual quality beyond what a golden image captures are the documented exception - they go to a playtest with written acceptance criteria, with the mechanical part of the change still tested. Any other exception requires a stated reason.
    - Full standard in [core_protocol.md](core_protocol.md#test-first-development-tdd).
 10. No Dead Code on Replacement
     - When a feature, flow, screen, or approach **replaces** an existing one, the old code must be **removed in the same change**, safely (delete the files/routes, drop now-unused imports, deps, tests, and config). No commented-out blocks, no orphaned files, no superseded flow left behind "just in case".

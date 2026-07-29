@@ -9,13 +9,13 @@ For how this layer relates to the other editor layer(s), see the **Editor suppor
 | Path                                      | Windsurf primitive      | Holds                                                                                                |
 |-------------------------------------------|-------------------------|------------------------------------------------------------------------------------------------------|
 | `rules/core.md`                           | Rule (`always_on`)      | Condensed always-on behavior rules; links out to the protocols.                                      |
-| `rules/{frontend,backend,integration}.md` | Rule (`model_decision`) | Per-surface role context, loaded on demand by description.                                           |
+| `rules/{simulation,presentation,content}.md` | Rule (`model_decision`) | Per-surface role context, loaded on demand by description.                                           |
 | `workflows/*.md`                          | Workflow (`/slash`)     | Deliberate session ceremonies: `/session-start`, `/session-end`, `/promote`.                         |
-| `skills/<name>/SKILL.md`                  | Skill (auto / `@name`)  | `new-work-item`, `new-design`, `new-contract`, `new-endpoint`, `new-screen`, `db-change`, `write-story`, `pr-summary`. |
+| `skills/<name>/SKILL.md`                  | Skill (auto / `@name`)  | `new-work-item`, `new-design`, `new-system`, `new-hud`, `engine-api-change`, `data-change`, `write-story`, `pr-summary`. |
 
 ## Requirements
 
-**No MCP servers required.** This layer uses only Cascade's built-in terminal and file editing - nothing here depends on an MCP server or any external tool integration. The one step that *benefits* from extra tooling, the UI smoke check in the `new-screen` skill, degrades to running the app manually when no editor preview/browser tooling is available; the failing-then-green test is the hard requirement either way.
+**No MCP servers required.** This layer uses only Cascade's built-in terminal and file editing - nothing here depends on an MCP server or any external tool integration. The one step that *benefits* from extra tooling, the smoke check in the `new-hud` skill, degrades to a note when the render path is unavailable on the host; the failing-then-green test is the hard requirement either way.
 
 ## How Cascade consumes these
 
@@ -25,7 +25,7 @@ For how this layer relates to the other editor layer(s), see the **Editor suppor
 
 ### Sharing one skill source with the Claude layer
 
-Both layers use the same `<name>/SKILL.md` folder format, so a scaffold skill can be written once and shared (a symlink, or a build step that copies one into the other) rather than maintained twice. The **sets** are not identical: the session ceremonies live in `workflows/` here but in `skills/` on the Claude side, so only the scaffolds (`new-*`, `db-change`, `write-story`, `pr-summary`) overlap.
+Both layers use the same `<name>/SKILL.md` folder format, so a scaffold skill can be written once and shared (a symlink, or a build step that copies one into the other) rather than maintained twice. The **sets** are not identical: the session ceremonies live in `workflows/` here but in `skills/` on the Claude side, so only the scaffolds (`new-*`, `data-change`, `engine-api-change`, `write-story`, `pr-summary`) overlap.
 
 ### Why ceremonies are Workflows and scaffolds are Skills
 

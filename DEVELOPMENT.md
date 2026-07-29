@@ -35,23 +35,23 @@ Both resolve the shared [`docs/`](docs) tree through relative links, so the docs
 
 ### How it discovers the framework
 
-| File / dir         | Role                                                                         |
-|--------------------|------------------------------------------------------------------------------|
-| `CLAUDE.md` (root) | Auto-loaded into every session as the standing behavior contract.            |
-| `.claude/skills/<name>/SKILL.md` | Ordered checklists, invoked explicitly with `/skill-name`.     |
-| `.claude/agents/`  | Role subagents (`frontend`, `backend`, `integration`), dispatched as needed. |
+| File / dir         | Role                                                                            |
+|--------------------|---------------------------------------------------------------------------------|
+| `CLAUDE.md` (root) | Auto-loaded into every session as the standing behavior contract.               |
+| `.claude/skills/<name>/SKILL.md` | Ordered checklists, invoked explicitly with `/skill-name`.        |
+| `.claude/agents/`  | Role subagents (`simulation`, `presentation`, `content`), dispatched as needed. |
 
 ### The session loop
 
 1. Run `claude` in the repo (or open the repo in your IDE with the Claude Code extension).
 2. `/session-start` - syncs, reads the protocol context, and helps you pick the work.
 3. Do the work test-first; delegate per surface to the role agents.
-4. Scaffold new units with the skills: `/new-contract`, `/new-endpoint`, `/new-screen`, `/db-change`, `/new-work-item`, `/new-design`.
+4. Scaffold new units with the skills: `/new-system`, `/new-hud`, `/engine-api-change`, `/data-change`, `/new-work-item`, `/new-design`.
 5. `/session-end` - summary, changelog entry, commit, PR.
 
 ### Verify the setup
 
-Type `/` in Claude Code and confirm the framework skills (`session-start`, `new-endpoint`, …) appear. Running `/session-start` and getting the protocol checklist back confirms `CLAUDE.md` and `.claude/` are being read.
+Type `/` in Claude Code and confirm the framework skills (`session-start`, `new-system`, …) appear. Running `/session-start` and getting the protocol checklist back confirms `CLAUDE.md` and `.claude/` are being read.
 
 > **If a skill is missing or `/session-start` returns "Unknown skill":** check the layout first. Claude Code discovers project skills as `.claude/skills/<name>/SKILL.md` folders. A flat `.claude/skills/<name>.md` file is silently ignored - there is no warning, the skill just never registers. Note that moving a skill into a folder adds a directory level, so any relative link inside it needs one more `../` to still resolve.
 
@@ -67,19 +67,19 @@ More detail: [.claude/README.md](.claude/README.md).
 
 ### How it discovers the framework
 
-| File / dir                                          | Role                                                                             |
-|-----------------------------------------------------|----------------------------------------------------------------------------------|
-| `.windsurf/rules/core.md`                           | `trigger: always_on` - applied to every message.                                 |
-| `.windsurf/rules/{frontend,backend,integration}.md` | `trigger: model_decision` - loaded when Cascade judges the description relevant. |
-| `.windsurf/workflows/*.md`                          | Invoked manually with `/session-start`, `/session-end`, `/promote`.              |
-| `.windsurf/skills/<name>/SKILL.md`                  | Auto-invoked on a description match, or called with `@name`.                     |
+| File / dir                                          | Role                                                                                |
+|-----------------------------------------------------|-------------------------------------------------------------------------------------|
+| `.windsurf/rules/core.md`                           | `trigger: always_on` - applied to every message.                                    |
+| `.windsurf/rules/{simulation,presentation,content}.md` | `trigger: model_decision` - loaded when Cascade judges the description relevant. |
+| `.windsurf/workflows/*.md`                          | Invoked manually with `/session-start`, `/session-end`, `/promote`.                 |
+| `.windsurf/skills/<name>/SKILL.md`                  | Auto-invoked on a description match, or called with `@name`.                        |
 
 ### The session loop
 
 1. Open the repo folder in Windsurf.
 2. `/session-start` (a workflow) - same start checklist.
 3. Do the work test-first; the role rules surface as Cascade touches each surface.
-4. Scaffold with the skills: `@new-contract`, `@new-endpoint`, `@new-screen`, `@db-change`, `@new-work-item`, `@new-design` (or let Cascade auto-invoke them when a request matches).
+4. Scaffold with the skills: `@new-system`, `@new-hud`, `@engine-api-change`, `@data-change`, `@new-work-item`, `@new-design` (or let Cascade auto-invoke them when a request matches).
 5. `/session-end` (a workflow) - summary, changelog, commit, PR.
 
 ### Verify the setup

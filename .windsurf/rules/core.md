@@ -24,7 +24,7 @@ Verify against source before asserting - read the file, run the query, check the
 
 ## Test-first development (hard rule)
 
-All new behavior is written test-first: a failing test that captures the behavior exists and is shown failing before implementation, then driven to green. Applies to service endpoints, API contract logic, and UI components/hooks. Documented exception: schema/index/mapping work (you cannot query a collection or index until it exists) ships its spec test in the same change. Full standard: [core_protocol.md](../../docs/protocol/core_protocol.md#test-first-development-tdd).
+All new behavior is written test-first: a failing test that captures the behavior exists and is shown failing before implementation, then driven to green. Applies to engine subsystems, gameplay rules, content schemas, and presentation logic; an engine API change is test-first on both sides. Documented exception: feel-tuned values and visual quality beyond a golden image, which go to a playtest with written criteria. Full standard: [core_protocol.md](../../docs/protocol/core_protocol.md#test-first-development-tdd) and [game_test_protocol.md](../../docs/protocol/game_test_protocol.md).
 
 ## Branch & merge (do not deviate)
 
@@ -44,4 +44,4 @@ Surgical edits only - never full rewrites unless structurally required. State wh
 
 ## Surfaces
 
-UI / client work follows the `frontend` rule + [frontend_protocol.md](../../docs/protocol/frontend_protocol.md); service + data work follows the `backend` rule + [backend_protocol.md](../../docs/protocol/backend_protocol.md); anything crossing the service<->UI boundary follows the `integration` rule + [integration_protocol.md](../../docs/protocol/integration_protocol.md).
+Engine and gameplay work follows the `simulation` rule + [engine_protocol.md](../../docs/protocol/engine_protocol.md) and [gameplay_protocol.md](../../docs/protocol/gameplay_protocol.md); anything the player sees or hears follows the `presentation` rule + [presentation_protocol.md](../../docs/protocol/presentation_protocol.md); definitions, loaders, resources, and saves follow the `content` rule + [content_protocol.md](../../docs/protocol/content_protocol.md). Anything crossing the engine/game boundary obeys [engine_api_protocol.md](../../docs/protocol/engine_api_protocol.md) regardless of which rule is active.

@@ -10,9 +10,9 @@ Role-specific rules, examples, and gotchas live in their own protocols:
 
 | Protocol                                           | Owns                                             |
 |----------------------------------------------------|--------------------------------------------------|
-| [frontend_protocol.md](frontend_protocol.md)       | The UI / client surface                          |
-| [backend_protocol.md](backend_protocol.md)         | The service + data layer                         |
-| [integration_protocol.md](integration_protocol.md) | The API seam between services and consumers      |
+| [presentation_protocol.md](presentation_protocol.md)     | Render, camera, sprites, HUD, audio output |
+| [content_protocol.md](content_protocol.md) | Content definitions, loaders, resources, save data       |
+| [engine_api_protocol.md](engine_api_protocol.md)                  | Changing the engine/game boundary |
 | [engine_protocol.md](engine_protocol.md)           | Engine code - the layer the game is built on     |
 | [gameplay_protocol.md](gameplay_protocol.md)       | Gameplay code - the rules of the game            |
 | [game_test_protocol.md](game_test_protocol.md)     | Test-first as it applies to game code            |
@@ -35,14 +35,14 @@ Session lifecycle and work-item selection live in [session_protocol.md](session_
 
 | Layer                      | The test written first                                                                                                                                                                                                                                 |
 |----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Service endpoint           | A contract/integration test (request against the running app, real datastore via Testcontainers) asserting the documented API shape, envelope, and error codes.                                                                                        |
-| API contract               | A provider contract/integration test pinning the documented response shape; cross-repo, a consumer-driven contract (e.g. Pact).                                                                                                                        |
-| UI component / hook        | A render/behavior test, with the data layer mocked at the query seam against the documented API.                                                                                                                                                       |
-| Integration (service + UI) | **Both sides, test-first**: the service contract/integration test (real datastore) *and* the consumer test against a mock matching the documented API. The HTTP API is the integration seam, so a drift on either side fails a test.                   |
+| Engine subsystem           | A unit test over plain inputs and outputs. No window, no device, no clock.                                                                                                                                                                             |
+| Engine API change          | A unit test on the engine side **and** a simulation test on the gameplay side, both before implementation.                                                                                                                                             |
+| Gameplay rule              | A simulation test: build the state, step a known number of fixed ticks with an injected clock, assert state or events.                                                                                                                                 |
+| Content / save schema      | A round-trip test, plus a migration test from each supported older version for save data.                                                                                                                                                              |
 
 ### Documented exception
 
-**Schema / index / mapping work** cannot be queried until the collection or index exists, so a pure red-first test is impossible. There, write the **spec-driven integration tests in the same change** (assert the model's invariants against a live datastore via Testcontainers) and drive to green. State explicitly whenever this exception applies. No other exceptions without a stated reason.
+**Feel-tuned values and visual quality beyond what a golden image captures** cannot have a failing test written first. There is no assertion for "the shotgun lands with weight". Verification moves to a playtest with written acceptance criteria ([qa_protocol.md](qa_protocol.md)), and the tuned value stays in data so it can change without a code change. The mechanical part still gets a test: "the dash applies for the configured duration and cancels on hit" is testable; only "the dash feels right" is not. State explicitly whenever this exception applies, and say which part of the change is tested behavior and which is feel. Full treatment: [game_test_protocol.md](game_test_protocol.md). No other exceptions without a stated reason.
 
 ---
 
@@ -50,8 +50,8 @@ Session lifecycle and work-item selection live in [session_protocol.md](session_
 
 The app is built on a long-lived **`dev`** integration branch; **`main`** stays the stable trunk. Any manual-QA notes live in [qa_protocol.md](qa_protocol.md). (Enforcement: [session_protocol.md](session_protocol.md#enforcement-rules) Rule 11.)
 
-- **`main`** - stable trunk: docs, protocol, foundations (schema, API contract, auth). Kept clean.
-- **`dev`** - app integration: data layer, screens, auth, manual testing. **All app work goes here.**
+- **`main`** - stable trunk: docs, protocol, and foundations (build system, engine seams). Kept clean.
+- **`dev`** - game integration: engine subsystems, gameplay systems, content, playtesting. **All game work goes here.**
 - **Sync `main -> dev`** regularly (`git checkout dev && git merge main`) so doc/foundation updates flow in.
 - **Feature or bugfix branch off `dev`.** The agent works on a `feature/ADE-<number>` branch (any non-bug work) or a `bugfix/ADE-<number>` branch (a fix), where `ADE-<number>` is the work item's Linear issue id, e.g. `feature/ADE-270`.
 - **Order of operations (critical):**
@@ -98,27 +98,26 @@ Conventions that hold throughout:
 
 ### Naming Conventions
 
-Adjust casing to your language's idiom; keep them consistent across the repo.
+C++ idiom, applied consistently across the repo.
 
-| Item                  | Convention              | Example                   |
-|-----------------------|-------------------------|---------------------------|
-| Components            | PascalCase              | `UserCard.tsx`            |
-| Hooks                 | camelCase, `use` prefix | `useUserStatus.ts`        |
-| Utilities / helpers   | camelCase               | `formatDate.ts`           |
-| Routes / endpoints    | kebab-case              | `api/v1/reset-password`   |
-| Feature folders       | kebab-case              | `features/onboarding/`    |
-| Test files            | `*.test.*`              | `formatDate.test.ts`      |
-| DB table types        | PascalCase singular     | `User`, `Order`           |
-| DB columns            | snake_case              | `created_at`, `is_active` |
-| Environment variables | SCREAMING_SNAKE_CASE    | `DATABASE_URL`            |
-| Constants             | SCREAMING_SNAKE_CASE    | `MAX_RETRIES`             |
+| Item                  | Convention               | Example                          |
+|-----------------------|--------------------------|----------------------------------|
+| Types and classes     | PascalCase               | `Enemy`, `BodyHandle`            |
+| Functions and methods | camelCase                | `stepEnemies`, `applyDamage`     |
+| System step functions | `step` prefix, camelCase | `stepCollision`, `stepPickups`   |
+| Member variables      | trailing underscore      | `health_`, `body_`               |
+| Files                 | snake_case               | `billboard_sprite.cpp`           |
+| Test files            | `*_test.cpp`             | `collision_test.cpp`             |
+| Directories           | snake_case               | `src/engine/physics/`            |
+| Content keys (JSON)   | camelCase                | `fireIntervalSeconds`            |
+| Content files         | snake_case               | `data/drop_tables.json`          |
+| Tunable constants     | SCREAMING_SNAKE_CASE     | `SIM_TICK_HZ`, `FRAME_BUDGET_MS` |
+| Constants             | SCREAMING_SNAKE_CASE     | `MAX_CATCHUP_TICKS`              |
 
 ### Code Quality
 
-Phrase these against your language; the principles are universal.
-
-- **No untyped escapes.** Prefer the strictest typing your language offers; avoid unchecked casts. Where a cast is unavoidable, add an inline comment explaining why it is safe.
-- **Boundary types are owned per deployable** - a consumer mirrors a provider's documented API behind its own typed client; do not inline ad-hoc request/response types in handlers or components ([integration_protocol.md](integration_protocol.md)).
+- **No untyped escapes.** Prefer the strictest typing C++ offers; avoid `reinterpret_cast` and C-style casts. Where a cast is unavoidable, add an inline comment explaining why it is safe.
+- **The engine API is the internal boundary** - gameplay calls it and nothing below it; the library types an engine wrapper hides must never appear in a gameplay signature ([engine_api_protocol.md](engine_api_protocol.md)).
 - **Prefer explicit return types** on exported functions.
 - **Strict mode is non-negotiable** - do not loosen the compiler/linter config to make code pass.
 - **One inherited source of truth for compiler/linter config.** Per-project configs extend a shared base and keep only runtime-specific overrides; add a shared flag to the base, not to one project.
@@ -151,7 +150,7 @@ Scope is optional but recommended when the change is isolated (e.g., `feat(auth)
 
 Before opening a PR, all of the following must be completed.
 
-- [ ] **Self-audit:** re-read the role protocol(s) for the work you did (frontend / backend / integration) and audit the diff against them - confirm the change conforms before opening the PR.
+- [ ] **Self-audit:** re-read the role protocol(s) for the work you did (simulation / presentation / content) and audit the diff against them - confirm the change conforms before opening the PR.
 - [ ] A work item exists and is referenced in the PR body.
 - [ ] **Tests were written first** (failing test before implementation) per [Test-First Development](#test-first-development-tdd) - or the documented schema exception is stated.
 - [ ] Lint passes with zero errors.

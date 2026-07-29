@@ -93,5 +93,5 @@ Your project's vocabulary - the nouns and verbs of the product. Each links to it
 | Binary       | The single desktop executable this repo builds.   | doomer.exe      |
 | MinGW-w64    | The toolchain producing the Windows build.        | CMake toolchain |
 | WSLg         | The WSL2 graphics layer used for local iteration. | dev host only   |
-| Pod          | A running instance of a deployable.                | k8s pod        |
-| Service      | Stable in-cluster endpoint for a deployable.       | k8s Service    |
+| Playtest     | Human verification of feel and visual quality.    | qa_protocol.md  |
+| FreeDoom swap| Replacing local Doom data with libre assets.      | gates release   |

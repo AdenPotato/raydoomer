@@ -1,6 +1,6 @@
 # QA Protocol (template)
 
-How manual QA is run and recorded, on top of the automated in-repo gate (typecheck, lint, tests, build) that runs before any PR. This file is a **template** - fill in the bracketed parts for your project, or delete the sections that do not apply (a purely automated backend may need very little here).
+How manual QA is run and recorded, on top of the automated in-repo gate (typecheck, lint, tests, build) that runs before any PR. This file is a **template** - fill in the bracketed parts for your project, or delete the sections that do not apply (a project leaning hard on automated tests may need very little here).
 
 ---
 

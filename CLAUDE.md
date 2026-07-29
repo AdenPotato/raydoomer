@@ -35,20 +35,20 @@ Project-level skills live in `.claude/skills/<name>/SKILL.md` (one folder per sk
 | `/write-story`   | Draft or refine a Linear issue to the story template                                    |
 | `/new-design`    | Structured questionnaire before generating any `docs/design/*` file                     |
 | `/promote`       | Promote a sandbox session to tracked - create the branch, continue as tracked           |
-| `/new-contract`  | Change a service's documented API, test-first on the side you own                       |
-| `/new-endpoint`  | Scaffold a service endpoint + failing contract/integration test first                   |
-| `/new-screen`    | Scaffold a UI screen/component + failing test first                                     |
-| `/db-change`     | Data-model change (Mongo docs/indexes or ES mappings) + spec test                       |
+| `/engine-api-change` | Change the engine/game boundary, test-first on both sides                           |
+| `/new-system` | Scaffold a gameplay or engine system + failing simulation test first                       |
+| `/new-hud` | Scaffold a HUD element + failing test first                                                   |
+| `/data-change` | Content or save schema change + round-trip and migration tests                            |
 
 ## Agents
 
 Role subagents live in `.claude/agents/`; delegate to them via the Agent tool. Each owns a surface and defers its rules to the matching protocol.
 
-| Agent         | Use for                                                                                                             |
-|---------------|---------------------------------------------------------------------------------------------------------------------|
-| `frontend`    | UI / client surface ([frontend_protocol.md](docs/protocol/frontend_protocol.md))                                    |
-| `backend`     | Service + data layer ([backend_protocol.md](docs/protocol/backend_protocol.md))                                     |
-| `integration` | The API seam between services and consumers ([integration_protocol.md](docs/protocol/integration_protocol.md))      |
+| Agent         | Use for                                                                                                                                                |
+|---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `presentation` | Render, camera, sprites, HUD, audio out ([presentation_protocol.md](docs/protocol/presentation_protocol.md))                                          |
+| `simulation` | Engine subsystems + gameplay rules ([engine_protocol.md](docs/protocol/engine_protocol.md), [gameplay_protocol.md](docs/protocol/gameplay_protocol.md)) |
+| `content` | Definitions, loaders, resources, saves ([content_protocol.md](docs/protocol/content_protocol.md))                                                          |
 
 ---
 
@@ -154,7 +154,7 @@ Why this is a hard rule: a force-push or rewrite changes history that already ex
 
 ## Test-First Development (TDD)
 
-All new behavior is **test-first** - write the failing test that captures the behavior, show it fail, then implement to green. Applies to service endpoints, API contract logic, and UI components/hooks; integration spans both sides of the API contract. Documented exception: schema/index/mapping work (you cannot query a collection or index until it exists). Full standard: [core_protocol.md](docs/protocol/core_protocol.md#test-first-development-tdd); enforcement: [session_protocol.md](docs/protocol/session_protocol.md#enforcement-rules).
+All new behavior is **test-first** - write the failing test that captures the behavior, show it fail, then implement to green. Applies to engine subsystems, gameplay rules, content schemas, and presentation logic; an engine API change is test-first on **both** sides. Documented exception: feel-tuned values and visual quality beyond what a golden image captures, which go to a playtest with written criteria. Full standard: [core_protocol.md](docs/protocol/core_protocol.md#test-first-development-tdd) and [game_test_protocol.md](docs/protocol/game_test_protocol.md); enforcement: [session_protocol.md](docs/protocol/session_protocol.md#enforcement-rules).
 
 ---
 
@@ -175,6 +175,6 @@ Full commit rules and enforcement rules: [session_protocol.md](docs/protocol/ses
 
 Generated and vendored output should never be hand-edited by Claude. Adapt this list to your toolchain. Typical entries:
 
-- Build output - Maven `target/`, frontend `dist/` / build directories
+- Build output - `build/`, `out/`, `cmake-build-*/`, and CMake `_deps/`
 - `node_modules/` and other dependency install directories
 - Generated protobuf stubs (regenerated from the `.proto`, once adopted)
