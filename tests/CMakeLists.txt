@@ -6,6 +6,7 @@ add_executable(engine_tests
   engine/physics_test.cpp
   engine/fixed_step_test.cpp
   engine/simulation_constants_test.cpp
+  engine/event_dispatch_test.cpp
   game/world_test.cpp
   platform/clock_test.cpp
   platform/file_system_test.cpp
