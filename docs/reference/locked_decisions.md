@@ -23,7 +23,7 @@ The registry of decisions that are settled and should not be re-litigated casual
 | Base library         | raylib 5.x (window, input, audio, 3D rendering)                        | Hard      |
 | Build tooling        | CMake + FetchContent                                                   | Hard      |
 | Target platform      | Windows, built with MinGW-w64 (C++23 rules out MSVC)                   | Hard      |
-| Dev environment      | WSL2; cross-compile to Windows and run the .exe on the host (ADE-22)   | Hard      |
+| Dev environment      | WSL2; cross-compile to Windows and run the .exe on the host (PR #1)    | Hard      |
 | Testing              | GoogleTest + GoogleMock                                                | Hard      |
 | Data / save format   | JSON via nlohmann/json                                                 | Hard      |
 | Physics              | Box3D (erincatto/box3d), MIT, C17. Run single-threaded for determinism | Hard      |
@@ -52,23 +52,23 @@ Full specification: [runtime_architecture.md](../design/runtime_architecture.md)
 
 ## Workflow & Tooling
 
-| Item                     | Locked Value / State                                                                                                                                                                                                                           | Lock Type |
-|--------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
-| Issue tracker            | Linear, team key `ADE`. Every tracked session maps to a Linear issue (`ADE-<number>`).                                                                                                                                                         | Hard      |
-| Version-control workflow | `main` is the protected trunk; all work branches off the long-lived `dev` integration branch; `dev -> main` is a separate, maintainer-only promotion. Model: [core_protocol.md](../protocol/core_protocol.md#branching-model-dev-integration). | Hard      |
-| Branch naming            | Off `dev`: `feature/ADE-<number>` for any non-bug work, `bugfix/ADE-<number>` for a fix; `ADE-<number>` is the Linear issue id.                                                                                                                | Hard      |
+| Item                     | Locked Value / State                                                                                                                                                                                                                              | Lock Type |
+|--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| Issue tracker            | GitHub Issues in this repository. Every tracked session maps to an issue; a PR saying `Closes #<n>` closes it on merge.                                                                                                                           | Hard      |
+| Version-control workflow | `main` is the protected trunk; all work branches off the long-lived `dev` integration branch; `dev -> main` is a separate, maintainer-only promotion. Model: [core_protocol.md](../protocol/core_protocol.md#branching-model-dev-integration).    | Hard      |
+| Branch naming            | Off `dev`: `feature/<issue>-<slug>` for any non-bug work, `bugfix/<issue>-<slug>` for a fix; `<issue>` is the GitHub issue number.                                                                                                                | Hard      |
 
 ---
 
 ## Product / Platform Fundamentals
 
-| Item         | Locked Value / State                                                                                                                            | Lock Type |
-|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
-| Product      | `doomer` - a desktop first-person shooter with a Diablo-like loot loop. Linear project `adencraft`                                              | Hard      |
-| Actors       | 2D billboard sprites, not 3D models (Doom's own architecture, matching available sprite content)                                                | Hard      |
-| Audio        | In scope for MVP - SFX and music, behind the platform seam                                                                                      | Hard      |
-| Asset policy | Loader targets the WAD/lump **format**. Local Doom data in `resources/` is gitignored and never shipped; FreeDoom is the distribution asset set | Hard      |
-| Non-goals    | Multiplayer / networking; procedural level generation; level editor tooling (deferred, with an early spike)                                     | Soft      |
+| Item         | Locked Value / State                                                                                                                                   | Lock Type |
+|--------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| Product      | `doomer` - a desktop first-person shooter with a Diablo-like loot loop                                                                                 | Hard      |
+| Actors       | 2D billboard sprites, not 3D models (Doom's own architecture, matching available sprite content)                                                       | Hard      |
+| Audio        | In scope for MVP - SFX and music, behind the platform seam                                                                                             | Hard      |
+| Asset policy | Loader targets the WAD/lump **format**. Local Doom data in `resources/` is gitignored and never shipped; FreeDoom is the distribution asset set        | Hard      |
+| Non-goals    | Multiplayer / networking; procedural level generation; level editor tooling (deferred, with an early spike)                                            | Soft      |
 
 ---
 
@@ -79,6 +79,6 @@ Unsettled items that are not yet locked. Convert each into a tracked work item b
 - **Box3D is pre-release.** The repository publishes no tags, so the build pins commit `781673b` off `main`. The API may churn without a deprecation path, and there is no release cadence to track. Revisit if upstream tags a release, or if an API break costs real time.
 - **The engine/game layer boundary is unverified.** `target_link_libraries(platform PRIVATE raylib)` prevents include leakage structurally, but `src/game/` is empty, so nothing exercises it yet. Add a CI check that no third-party header is reachable from `src/game/` (see the CI issue).
 - **Branch protection is not enabled.** CI now runs on every PR, but nothing yet *requires* the checks to pass before merge - that is a repository setting, not a workflow file. Until it is on, the gates are advisory.
-- **The game's real frame budget is unmeasured.** ADE-22 proved the *baseline* is negligible (0.4 ms avg for a trivial scene), not that a populated level holds 6.94 ms. Re-measure once sprites, physics, and a HUD are in a level.
-- **`ADE-21` mapping is underscoped** - the brush level format means the map must be derived from geometry rather than read from a grid. Rescope before the issue is picked up.
+- **The game's real frame budget is unmeasured.** PR #1 proved the *baseline* is negligible (0.4 ms avg for a trivial scene), not that a populated level holds 6.94 ms. Re-measure once sprites, physics, and a HUD are in a level.
+- **`#42` mapping is underscoped** - the brush level format means the map must be derived from geometry rather than read from a grid. Rescope before the issue is picked up.
 - **Level authoring ergonomics** - brush lists are hand-authored JSON. Spike after roughly three levels exist to decide whether editor tooling is needed.

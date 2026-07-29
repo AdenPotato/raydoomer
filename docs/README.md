@@ -31,7 +31,7 @@ This page is the **navigation map** (what each doc/folder is). Per-file **update
 | [locked_decisions.md](reference/locked_decisions.md) | The locked-decisions registry (the canon) - template.               |
 | [glossary.md](reference/glossary.md)                 | Shared vocabulary - template.                                       |
 | [integrations.md](reference/integrations.md)         | External-service setup runbook (env vars per service) - template.   |
-| [authoring.md](reference/authoring.md)               | Linear issue + PR summary templates.                                |
+| [authoring.md](reference/authoring.md)               | GitHub issue + PR summary templates.                                |
 
 ## design/
 

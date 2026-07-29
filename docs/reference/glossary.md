@@ -20,8 +20,8 @@ Your project's vocabulary - the nouns and verbs of the product. Each links to it
 | Entity           | A simulated actor: player, enemy, projectile, or pickup.                                               | runtime_architecture.md                                              |
 | Billboard sprite | A 2D sprite that always faces the camera. How all actors are drawn.                                    | runtime_architecture.md                                              |
 | Run              | One playthrough attempt through a sequence of levels.                                                  | runtime_architecture.md                                              |
-| Affix            | A randomized stat modifier attached to an item.                                                        | ADE-16                                                               |
-| Rarity tier      | An item quality band that governs affix count and magnitude.                                           | ADE-16                                                               |
+| Affix            | A randomized stat modifier attached to an item.                                                           | #37                                                               |
+| Rarity tier      | An item quality band that governs affix count and magnitude.                                              | #37                                                               |
 | Tunable          | A named gameplay value living in a data file, never a literal in code.                                 | gameplay_protocol.md                                                 |
 | Feel             | Subjective play quality. Verified by playtest, never by a test.                                        | game_test_protocol.md                                                |
 

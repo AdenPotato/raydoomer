@@ -4,7 +4,7 @@
 
 ## Project
 
-**doomer** - a desktop first-person shooter with a Diablo-like loot loop, written in C++23 on raylib and Box3D. Tracked in Linear under team `ADE`, project `adencraft`. The architecture is [runtime_architecture.md](docs/design/runtime_architecture.md); the settled decisions are [locked_decisions.md](docs/reference/locked_decisions.md).
+**doomer** - a desktop first-person shooter with a Diablo-like loot loop, written in C++23 on raylib and Box3D. Work is tracked in this repository's GitHub Issues. The architecture is [runtime_architecture.md](docs/design/runtime_architecture.md); the settled decisions are [locked_decisions.md](docs/reference/locked_decisions.md).
 
 This file is auto-loaded every session and defines how Claude works in this repo.
 
@@ -26,19 +26,19 @@ Claude reads the following files at the start of each new session.
 
 Project-level skills live in `.claude/skills/<name>/SKILL.md` (one folder per skill - a flat `.md` file will not be discovered). Invoke with `/skill-name`. Each skill's `description:` frontmatter is the canonical one-liner; this table is the index.
 
-| Skill            | Purpose                                                                                 |
-|------------------|-----------------------------------------------------------------------------------------|
-| `/session-start` | Full session start checklist - sync, context load, select the work, confirm docs        |
-| `/session-end`   | Full session end checklist - summary, changelog, commit, PR, next-up list               |
-| `/pr-summary`    | Generate a PR description from the branch diff                                          |
-| `/new-work-item` | Capture a new Linear issue (ADE team) with type and priority in one flow                |
-| `/write-story`   | Draft or refine a Linear issue to the story template                                    |
-| `/new-design`    | Structured questionnaire before generating any `docs/design/*` file                     |
-| `/promote`       | Promote a sandbox session to tracked - create the branch, continue as tracked           |
-| `/engine-api-change` | Change the engine/game boundary, test-first on both sides                           |
-| `/new-system` | Scaffold a gameplay or engine system + failing simulation test first                       |
-| `/new-hud` | Scaffold a HUD element + failing test first                                                   |
-| `/data-change` | Content or save schema change + round-trip and migration tests                            |
+| Skill            | Purpose                                                                                        |
+|------------------|------------------------------------------------------------------------------------------------|
+| `/session-start` | Full session start checklist - sync, context load, select the work, confirm docs               |
+| `/session-end`   | Full session end checklist - summary, changelog, commit, PR, next-up list                      |
+| `/pr-summary`    | Generate a PR description from the branch diff                                                 |
+| `/new-work-item` | Capture a new GitHub issue (this repository) with type and priority in one flow                |
+| `/write-story`   | Draft or refine a GitHub issue to the story template                                           |
+| `/new-design`    | Structured questionnaire before generating any `docs/design/*` file                            |
+| `/promote`       | Promote a sandbox session to tracked - create the branch, continue as tracked                  |
+| `/engine-api-change` | Change the engine/game boundary, test-first on both sides                                  |
+| `/new-system` | Scaffold a gameplay or engine system + failing simulation test first                              |
+| `/new-hud` | Scaffold a HUD element + failing test first                                                          |
+| `/data-change` | Content or save schema change + round-trip and migration tests                                   |
 
 ## Agents
 
@@ -62,7 +62,7 @@ Detailed rules for each session type are defined in [session_protocol.md](docs/p
 
 **Branch Naming - Environment Conflict Rule:**
 
-If the session environment pre-assigns a branch name that does not follow the `feature/ADE-<number>` or `bugfix/ADE-<number>` convention defined in session_protocol.md, Claude must halt and flag the conflict before making any changes.
+If the session environment pre-assigns a branch name that does not follow the `feature/<issue>-<slug>` or `bugfix/<issue>-<slug>` convention defined in session_protocol.md, Claude must halt and flag the conflict before making any changes.
 
 Do not proceed on the pre-assigned branch without explicit developer approval.
 
@@ -138,7 +138,7 @@ Co-authored with Claude
 
 ## Branch & Merge Workflow (CRITICAL - do not deviate)
 
-**`main` is protected. Claude never merges to `main`** and never commits app work straight to it. All work branches off the long-lived **`dev`** integration branch as `feature/ADE-<number>` or `bugfix/ADE-<number>` (the Linear issue id); `dev -> main` is a separate, deliberate promotion performed by a maintainer.
+**`main` is protected. Claude never merges to `main`** and never commits app work straight to it. All work branches off the long-lived **`dev`** integration branch as `feature/<issue>-<slug>` or `bugfix/<issue>-<slug>` (the GitHub issue number); `dev -> main` is a separate, deliberate promotion performed by a maintainer.
 
 The full sequence (feature branch -> green + push -> review/QA -> PR -> merge to `dev`) is defined once in the [Branching Model](docs/protocol/core_protocol.md#branching-model-dev-integration); the review/QA gate and any manual-QA workflow live in [qa_protocol.md](docs/protocol/qa_protocol.md). Do not deviate.
 

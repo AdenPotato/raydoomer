@@ -30,7 +30,7 @@ If the developer has not declared the session type, ask: **Tracked, Design, or S
 
 ## Step 3 - Select the work
 
-Surface the open, ready Linear issues from the `ADE` team, ordered by priority, for the developer to choose from. Do not create a branch or make changes before the developer selects.
+Surface the open, ready GitHub issues from this repository, ordered by priority, for the developer to choose from. Do not create a branch or make changes before the developer selects.
 
 ## Step 4 - Read relevant design markdown
 
@@ -40,4 +40,4 @@ Based on the selected work, determine which files under `docs/design/` are relev
 
 State which markdown files were read and why. Ask the developer to confirm before proceeding.
 
-Only after confirmation: for **Tracked sessions**, create the branch off `dev` as `feature/ADE-<number>` (any non-bug work) or `bugfix/ADE-<number>` (a fix), where `ADE-<number>` is the work item's Linear issue id.
+Only after confirmation: for **Tracked sessions**, create the branch off `dev` as `feature/<issue>-<slug>` (any non-bug work) or `bugfix/<issue>-<slug>` (a fix), where `<issue>` is the work item's GitHub issue number.

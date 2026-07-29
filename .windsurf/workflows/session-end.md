@@ -1,5 +1,5 @@
 ---
-description: End a session - produce a summary, update the changelog (tracked only), commit, update or open the PR, and generate an Up Next list from Linear.
+description: End a session - produce a summary, update the changelog (tracked only), commit, update or open the PR, and generate an Up Next list from GitHub Issues.
 ---
 
 Execute the session end checklist in this exact order.
@@ -14,7 +14,7 @@ List every file changed with a one-line description of what changed and why.
 
 ## Step 3 - Up Next list
 
-Fetch the current open, ready Linear issues sorted by priority from the `ADE` team. Hold the top 4-5 for the session summary; Linear is the canonical next-work source, so do not embed them in the changelog.
+Fetch the current open, ready GitHub issues sorted by priority from this repository. Hold the top 4-5 for the session summary; GitHub Issues is the canonical next-work source, so do not embed them in the changelog.
 
 ## Step 4 - Tracked sessions: changelog entry
 
@@ -52,7 +52,7 @@ Stage and commit all changes. Format: `<type>(<scope>): <description>`. Every co
 
 ## Step 9 - Pull request: update existing or create new (Tracked sessions)
 
-Check whether a pull request (PR) is already open for the current branch. **If one exists**, update its body to the **PR summary template** ([authoring.md](../../docs/reference/authoring.md)). **If not**, ask the developer which branch to open against (default: `dev`), then create it - title `<type>(<scope>): <description> [ADE-<n>]`, body to the **PR summary template** (Summary, Linear `Closes ADE-<n>`, Changes, Testing, Risk & rollout), ending with the attribution trailer.
+Check whether a pull request (PR) is already open for the current branch. **If one exists**, update its body to the **PR summary template** ([authoring.md](../../docs/reference/authoring.md)). **If not**, ask the developer which branch to open against (default: `dev`), then create it - title `<type>(<scope>): <description> [#<n>]`, body to the **PR summary template** (Summary, GitHub Issues `Closes #<n>`, Changes, Testing, Risk & rollout), ending with the attribution trailer.
 
 Record the final PR reference and update the changelog entry (Step 4) with it. Do not delete this session's branch here - merged-branch cleanup happens at the next session start.
 

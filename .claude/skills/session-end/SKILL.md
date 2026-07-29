@@ -1,6 +1,6 @@
 ---
 name: session-end
-description: End a session - produce a summary, update the changelog (tracked only), commit, update or open the PR, and generate an Up Next list from Linear.
+description: End a session - produce a summary, update the changelog (tracked only), commit, update or open the PR, and generate an Up Next list from GitHub Issues.
 ---
 
 Execute the session end checklist in this exact order.
@@ -19,7 +19,9 @@ List every file changed with a one-line description of what changed and why.
 
 ## Step 3 - Up Next list
 
-Fetch the current open, ready Linear issues sorted by priority from the `ADE` team, via the Linear MCP tools (`list_issues`). Hold the top 4-5 for the session **summary**; Linear is the canonical next-work source, so do not embed them in the changelog.
+Fetch the open issues with `gh issue list --state open --limit 50`, ordered by priority label and excluding `epic`. Hold the top 4-5 for the session **summary**; the issue tracker is the canonical next-work source, so do not embed them in the changelog.
+
+> **No manual status sync.** A PR whose body says `Closes #<n>` closes that issue automatically when it merges. Never mark an issue done by hand - if it did not close, the PR body was wrong, and that is the thing to fix.
 
 ## Step 4 - Tracked sessions: changelog entry
 
@@ -68,7 +70,7 @@ First check whether a pull request (PR) is already open for the current branch (
 
 **If a PR exists** - update its body to the **PR summary template** ([authoring.md](../../../docs/reference/authoring.md)).
 
-**If no PR exists** - ask the developer which branch to open against (default: `dev`), then create it. Title it `<type>(<scope>): <description> [ADE-<n>]`; write the body to the **PR summary template** ([authoring.md](../../../docs/reference/authoring.md)) - Summary, Linear (`Closes ADE-<n>`), Changes, Testing, Risk & rollout - ending with the configured attribution trailer. Do not append any other auto-generated footer.
+**If no PR exists** - ask the developer which branch to open against (default: `dev`), then create it. Title it `<type>(<scope>): <description> [#<n>]`; write the body to the **PR summary template** ([authoring.md](../../../docs/reference/authoring.md)) - Summary, GitHub Issues (`Closes #<n>`), Changes, Testing, Risk & rollout - ending with the configured attribution trailer. Do not append any other auto-generated footer.
 
 Record the final PR reference and update the changelog entry (Step 4) with it before the commit in Step 8 - or amend the entry if already committed.
 
