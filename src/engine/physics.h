@@ -1,8 +1,10 @@
 #pragma once
 
 #include "engine/violation.h"
+#include "platform/math_types.h"
 
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <variant>
@@ -11,29 +13,14 @@ namespace engine {
 
 class EventDispatcher;
 
-/// A direction, extent, or gravity vector. Single precision is ample.
-struct Vec3 {
-    float x = 0.0f;
-    float y = 0.0f;
-    float z = 0.0f;
-
-    friend bool operator==(const Vec3&, const Vec3&) = default;
-};
-
-/// A world-space position.
-///
-/// @remarks
-/// Double precision, mirroring Box3D's own split: translation is double, and
-/// rotation stays float because it never needs the extra range. Narrowing this
-/// to float would silently cost precision far from the origin, which is exactly
-/// the case large levels produce.
-struct Point3 {
-    double x = 0.0;
-    double y = 0.0;
-    double z = 0.0;
-
-    friend bool operator==(const Point3&, const Point3&) = default;
-};
+// Vec3 and Point3 live in `platform/` rather than here.
+//
+// The dependency runs game -> engine -> platform, so a type the renderer
+// interface needs in its signatures cannot be owned by the engine: platform
+// would then depend on engine, inverting the layering. They are aliased into
+// this namespace so callers still write engine::Vec3.
+using platform::Vec3;
+using platform::Point3;
 
 /// An opaque reference to a physics body.
 ///
@@ -136,6 +123,35 @@ public:
     /// @returns The body's world position, or `nullopt` if the handle is stale.
     ///          A stale lookup also reports a violation.
     std::optional<Point3> position(BodyHandle handle) const;
+
+    /// @returns The body's position blended between the previous and current
+    ///          simulation states, or `nullopt` if the handle is stale.
+    /// @param alpha Progress toward the next tick, in [0, 1). At 0 this is the
+    ///        previous state; approaching 1 it approaches the current one.
+    ///
+    /// @note This is what presentation draws from. Drawing raw current state
+    ///       visibly stutters whenever the tick and the frame disagree, which at
+    ///       144fps against a 60Hz simulation is most frames.
+    std::optional<Point3> interpolatedPosition(BodyHandle handle, double alpha) const;
+
+    /// A read-only view of one body, for inspection.
+    struct BodyView {
+        BodyHandle handle;
+        Point3 position; ///< Already interpolated by the supplied alpha.
+        Shape shape;
+        BodyType type;
+    };
+
+    /// Visits every live body.
+    ///
+    /// @remarks
+    /// An inspection API, used by the debug view. Gameplay does not enumerate
+    /// bodies - it holds handles to the ones it created.
+    ///
+    /// Takes a callback rather than returning a container so that walking the
+    /// world allocates nothing, which matters because this runs in the render
+    /// path (engine_protocol.md - nothing allocates in the hot path).
+    void forEachBody(double alpha, const std::function<void(const BodyView&)>& visit) const;
 
     /// Advances the simulation and publishes contact events.
     /// @param dt     Always the fixed tick, never a frame delta.

@@ -13,11 +13,22 @@
       }
     },
     {
-      "name": "windows-game",
-      "displayName": "Cross - Windows game binary",
-      "description": "MinGW-w64 cross-compile. Produces doomer.exe for the Windows host.",
+      "name": "windows-debug",
+      "displayName": "Cross - Windows game binary (debug)",
+      "description": "MinGW-w64 cross-compile, Debug. Day-to-day build: asserts live, debug view on.",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/windows-game",
+      "binaryDir": "${sourceDir}/build/windows-debug",
+      "toolchainFile": "${sourceDir}/cmake/toolchain-mingw64.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "windows-release",
+      "displayName": "Cross - Windows game binary (release)",
+      "description": "MinGW-w64 cross-compile, Release. The shipping build: asserts compiled out, debug view off.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/windows-release",
       "toolchainFile": "${sourceDir}/cmake/toolchain-mingw64.cmake",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
@@ -26,7 +37,8 @@
   ],
   "buildPresets": [
     { "name": "linux-test", "configurePreset": "linux-test" },
-    { "name": "windows-game", "configurePreset": "windows-game" }
+    { "name": "windows-debug", "configurePreset": "windows-debug" },
+    { "name": "windows-release", "configurePreset": "windows-release" }
   ],
   "testPresets": [
     {

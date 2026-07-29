@@ -20,6 +20,7 @@ target_include_directories(platform_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # Engine: no third-party dependency, no game nouns. Builds in both
 # configurations so the headless tests exercise the real thing.
 add_library(engine STATIC
+  engine/debug_renderer.cpp
   engine/event_dispatch.cpp
   engine/violation.cpp
   engine/rng.cpp
@@ -45,6 +46,7 @@ endif()
 add_library(platform_raylib STATIC
   platform/raylib/raylib_window.cpp
   platform/raylib/raylib_input.cpp
+  platform/raylib/raylib_renderer.cpp
   platform/raylib/raylib_audio_device.cpp
 )
 target_link_libraries(platform_raylib

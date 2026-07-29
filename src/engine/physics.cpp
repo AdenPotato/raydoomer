@@ -41,6 +41,14 @@ struct PhysicsWorld::Impl {
         b3BodyId body{};
         uint32_t generation = 0;
         bool alive = false;
+
+        // Kept so the debug view can describe a body without reaching into Box3D.
+        Shape shape{};
+        BodyType type = BodyType::Dynamic;
+
+        // The position before the most recent step. Presentation blends between
+        // this and the current one; without it, drawing stutters.
+        Point3 previousPosition{};
     };
 
     b3WorldId world{};
@@ -138,6 +146,9 @@ BodyHandle PhysicsWorld::createBody(const BodyDef& def) {
     Impl::Slot& slot = impl_->slots[index];
     slot.body = body;
     slot.alive = true;
+    slot.shape = def.shape;
+    slot.type = def.type;
+    slot.previousPosition = def.position;
     // Generations start at 1 so a default-constructed handle is never valid.
     slot.generation += 1;
 
@@ -179,6 +190,13 @@ std::optional<Point3> PhysicsWorld::position(BodyHandle handle) const {
 }
 
 void PhysicsWorld::step(float dt, EventDispatcher& events) {
+    // Snapshot before advancing, so presentation has two states to blend.
+    for (Impl::Slot& slot : impl_->slots) {
+        if (slot.alive) {
+            slot.previousPosition = fromBox3d(b3Body_GetPosition(slot.body));
+        }
+    }
+
     b3World_Step(impl_->world, dt, kSubStepCount);
 
     // Contacts are read out and republished as engine events. Gameplay learns
@@ -192,6 +210,48 @@ void PhysicsWorld::step(float dt, EventDispatcher& events) {
             continue; // one side was destroyed this step
         }
         events.publish(ContactBegan{ a, b });
+    }
+}
+
+std::optional<Point3> PhysicsWorld::interpolatedPosition(BodyHandle handle, double alpha) const {
+    const Impl::Slot* slot = impl_->resolve(handle, "interpolatedPosition");
+    if (slot == nullptr) {
+        return std::nullopt;
+    }
+
+    const Point3 current = fromBox3d(b3Body_GetPosition(slot->body));
+    const Point3 previous = slot->previousPosition;
+    return Point3{
+        previous.x + (current.x - previous.x) * alpha,
+        previous.y + (current.y - previous.y) * alpha,
+        previous.z + (current.z - previous.z) * alpha,
+    };
+}
+
+void PhysicsWorld::forEachBody(double alpha,
+                               const std::function<void(const BodyView&)>& visit) const {
+    // Index order, which is stable: slots are only ever appended or recycled in
+    // place, so two identical runs visit bodies in the same order
+    // (engine_protocol.md - stable iteration order).
+    for (uint32_t index = 0; index < impl_->slots.size(); ++index) {
+        const Impl::Slot& slot = impl_->slots[index];
+        if (!slot.alive) {
+            continue;
+        }
+
+        const Point3 current = fromBox3d(b3Body_GetPosition(slot.body));
+        const Point3 previous = slot.previousPosition;
+
+        visit(BodyView{
+            BodyHandle{ index, slot.generation },
+            Point3{
+                previous.x + (current.x - previous.x) * alpha,
+                previous.y + (current.y - previous.y) * alpha,
+                previous.z + (current.z - previous.z) * alpha,
+            },
+            slot.shape,
+            slot.type,
+        });
     }
 }
 
