@@ -1,4 +1,6 @@
+#include "engine/event_dispatch.h"
 #include "engine/fixed_step.h"
+#include "engine/rng.h"
 #include "engine/simulation.h"
 #include "game/world.h"
 #include "platform/clock.h"
@@ -34,6 +36,21 @@ int main() {
 
     engine::FixedStepAccumulator accumulator{ engine::SIM_TICK_SECONDS,
                                               engine::MAX_CATCHUP_TICKS };
+
+    // Randomness and the event sink are constructed once, here, and handed to
+    // the simulation. Nothing downstream fetches either of them.
+    //
+    // A fixed seed for now: a new run picks one and stores it in the save so the
+    // run replays identically. Choosing it is part of the run-start flow, which
+    // does not exist yet.
+    constexpr uint64_t kProvisionalSeed = 0x5EED;
+    engine::Rng rng{ kProvisionalSeed };
+
+    engine::EventDispatcher events;
+    // Systems register here, in a fixed order, before the first publish. None
+    // exist yet, so the dispatcher is frozen empty.
+    events.freeze();
+
     game::World world;
 
     double previousSeconds = clock.nowSeconds();
@@ -49,7 +66,7 @@ int main() {
 
         const engine::StepResult step = accumulator.advance(frameDelta);
         for (int i = 0; i < step.ticks; ++i) {
-            world.tick(static_cast<float>(engine::SIM_TICK_SECONDS));
+            world.tick(static_cast<float>(engine::SIM_TICK_SECONDS), rng, events);
         }
 
         window.beginFrame();

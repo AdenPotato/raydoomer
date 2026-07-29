@@ -1,35 +1,97 @@
 #pragma once
 
+#include "game/inventory.h"
+#include "game/level_progress.h"
+#include "game/player_state.h"
+#include "game/save.h"
+
+#include <cstdint>
+
+namespace engine {
+class EventDispatcher;
+class Rng;
+} // namespace engine
+
 namespace game {
 
-/// The root container for simulation state.
+/// The root container for simulation state, and the owner of the data model.
 ///
 /// @remarks
-/// **This is a stub.** The real data model - entities, systems, ownership, and
-/// the explicit tick order - is ADE-11 and ADE-12 onward. Building any of it
-/// here would be speculative generality (gameplay_protocol.md, Enforcement
-/// Rule 5).
+/// **Ownership is the point of this type.** Everything the run consists of lives
+/// here, in one place, so there is exactly one answer to "where does this state
+/// live" and no system holds its own copy:
 ///
-/// What exists is exactly the contract the frame loop needs: something to tick,
-/// and enough observable state to prove it was ticked correctly. When the real
-/// world arrives, `tick` grows the injected context - `tick(dt, Rng&,
-/// EventQueue&)` - and everything else here is replaced.
+///  - `PlayerState`   health, armor - what combat reads and writes
+///  - `Inventory`     what the player is carrying
+///  - `LevelProgress` where they are in the sequence
+///  - `currency`      run-scoped, and persisted
 ///
-/// It reads no clock and touches no device, so it steps headless.
+/// What the world deliberately does **not** own:
+///
+///  - **Positions and velocities.** Box3D owns those; entities hold body
+///    handles (runtime_architecture.md - transforms are physics-authoritative).
+///  - **Content definitions.** Weapon stats and item affixes live in `data/` and
+///    are loaded by the content layer. The world references them by id, so a
+///    balance change never invalidates a save.
+///  - **Presentation state.** Camera, animation, and interpolation are
+///    downstream and must never feed back (presentation_protocol.md).
+///
+/// The world steps headless: it reads no clock, touches no device, and takes its
+/// time, randomness, and event sink as parameters (the four seams).
 class World {
 public:
     /// Advances the simulation by one fixed tick.
-    /// @param dt Length of the tick in simulated seconds. Always the fixed step;
-    ///           never a variable frame delta.
-    void tick(float dt);
+    ///
+    /// @param dt     Length of the tick in simulated seconds. Always the fixed
+    ///               step, never a variable frame delta.
+    /// @param rng    Seeded randomness. Systems receive it; they never fetch it.
+    /// @param events Systems publish through this rather than calling each other.
+    ///
+    /// @note Currently advances the tick counter and simulated clock only. There
+    ///       are no systems yet - they arrive from ADE-12 onward and will be
+    ///       called from here in an explicit, fixed order
+    ///       (runtime_architecture.md). The signature is the locked contract
+    ///       they plug into.
+    void tick(float dt, engine::Rng& rng, engine::EventDispatcher& events);
 
-    /// @returns How many ticks have been run.
+    PlayerState& player() { return player_; }
+    const PlayerState& player() const { return player_; }
+
+    Inventory& inventory() { return inventory_; }
+    const Inventory& inventory() const { return inventory_; }
+
+    LevelProgress& progress() { return progress_; }
+    const LevelProgress& progress() const { return progress_; }
+
+    int currency() const { return currency_; }
+    void setCurrency(int value) { currency_ = value; }
+
+    /// @returns How many ticks have been run. Simulated, not wall-clock.
     int tickCount() const { return tickCount_; }
 
-    /// @returns Simulated seconds elapsed. Not wall-clock time.
+    /// @returns Simulated seconds elapsed in this level.
     float elapsedSeconds() const { return elapsedSeconds_; }
 
+    /// Projects the persistent subset of the world into a save.
+    ///
+    /// @param rngSeed The seed to resume from, so a loaded run replays
+    ///                identically. Passed in rather than read from the world:
+    ///                the RNG is owned by the caller, not by the world.
+    /// @note Deliberately lossy. Tick count and elapsed time are level-scoped
+    ///       and are not persisted; saves happen at level boundaries.
+    SaveData toSave(uint64_t rngSeed) const;
+
+    /// Restores the persistent state from a save.
+    /// @note Resets level-scoped state (tick count, elapsed time). A loaded save
+    ///       starts a level, it does not resume one mid-way.
+    void restore(const SaveData& save);
+
 private:
+    PlayerState player_;
+    Inventory inventory_;
+    LevelProgress progress_;
+    int currency_ = 0;
+
     int tickCount_ = 0;
     float elapsedSeconds_ = 0.0f;
 };

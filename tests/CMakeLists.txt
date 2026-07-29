@@ -7,7 +7,9 @@ add_executable(engine_tests
   engine/fixed_step_test.cpp
   engine/simulation_constants_test.cpp
   engine/event_dispatch_test.cpp
+  engine/rng_test.cpp
   game/world_test.cpp
+  game/save_test.cpp
   platform/clock_test.cpp
   platform/file_system_test.cpp
   platform/seam_test.cpp

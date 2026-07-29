@@ -195,6 +195,30 @@ Every tunable is a named entry in a JSON file under `data/`, parsed with nlohman
 
 ---
 
+## Data ownership
+
+There is exactly one answer to "where does this state live". No system holds its own copy of anything below.
+
+| State                          | Owner            | Notes                                                         |
+|--------------------------------|------------------|---------------------------------------------------------------|
+| Player health, armor           | `game::World`    | Plain data. Systems read and write it through the world.      |
+| Inventory contents             | `game::World`    | Item **references** plus counts, never item definitions.      |
+| Level progress, currency       | `game::World`    | Run-scoped and persisted.                                     |
+| Position, velocity, collision  | **Box3D**        | Physics-authoritative. Entities hold an opaque body handle.   |
+| Item, weapon, enemy definitions| `data/*.json`    | Loaded by the content layer; the world references them by id. |
+| Camera, animation, interpolation | Presentation   | Downstream of simulation, and never feeds back.               |
+| Tick count, elapsed time       | `game::World`    | **Level-scoped.** Reset on load; not persisted.               |
+| Time and randomness            | The caller       | Injected into `tick`; the world never fetches either.         |
+
+Two consequences worth stating outright:
+
+- **The world does not own positions.** Asking the world where the player is means asking the physics body through the engine API. One source of truth, so there is no sync step and no desync class of bug.
+- **The world does not own content.** It stores an `ItemId`, not an item. A balance change to a weapon never invalidates a save, because the save never contained the weapon's stats in the first place.
+
+`World::tick(dt, Rng&, EventDispatcher&)` is the locked contract. Systems are called from it in an explicit fixed order; they receive time, randomness, and the event sink as parameters and reach for none of them.
+
+---
+
 ## Save model
 
 Saves are written at **level boundaries** - on level exit (`ADE-19`). Mid-level world state is never serialized.
