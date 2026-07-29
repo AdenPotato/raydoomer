@@ -21,6 +21,7 @@ target_include_directories(platform_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # configurations so the headless tests exercise the real thing.
 add_library(engine STATIC
   engine/event_dispatch.cpp
+  engine/rng.cpp
   engine/fixed_step.cpp
 )
 target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
@@ -28,10 +29,11 @@ target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # Game: the rules. Depends on engine, never on platform or a third-party
 # library - the layer-boundary gate enforces that.
 add_library(game STATIC
+  game/save.cpp
   game/world.cpp
 )
 target_include_directories(game PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(game PUBLIC engine)
+target_link_libraries(game PUBLIC engine PRIVATE nlohmann_json::nlohmann_json)
 
 if(NOT CMAKE_CROSSCOMPILING)
   return()
