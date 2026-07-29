@@ -4,7 +4,7 @@ trigger: always_on
 
 # Core operating rules
 
-The full working agreement lives in the shared docs; this rule is the always-on summary. Read the detail in the protocols under [docs/protocol/](../../docs/protocol). Replace `<project-name>` and the `<co-author-trailer>` placeholder per project.
+**doomer** - a desktop first-person shooter with a Diablo-like loot loop, in C++23 on raylib and Box3D. The full working agreement lives in the shared docs; this rule is the always-on summary. Read the detail in the protocols under [docs/protocol/](../../docs/protocol).
 
 ## Start of session
 
@@ -40,7 +40,7 @@ Locked decisions are canon: if work contradicts one, flag it and halt until it i
 
 ## Edits & commits
 
-Surgical edits only - never full rewrites unless structurally required. State what you are about to change and why before changing it. Insert changelog entries via surgical edit, never a full rewrite. Every commit message and PR body ends with the configured `<co-author-trailer>`; no other auto-generated footer.
+Surgical edits only - never full rewrites unless structurally required. State what you are about to change and why before changing it. Insert changelog entries via surgical edit, never a full rewrite. Every commit message and PR body ends with `Co-authored with Claude`; no other auto-generated footer.
 
 ## Surfaces
 

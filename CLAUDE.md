@@ -1,12 +1,12 @@
 # Claude Instructions
 
-> **Template note:** this is a reusable, project-neutral operating framework. Replace `<project-name>` with your project name and the `<co-author-trailer>` placeholder with your preferred attribution line (or delete it). Everything else is written to work for any stack and any project - adapt the placeholders in the protocols to your toolchain as you go.
-
 ---
 
 ## Project
 
-`<project-name>`. This file is auto-loaded every session and defines how Claude works in this repo. The work for a session is whatever the developer brings to it - a task, a ticket, an idea - tracked in whatever tool the team uses.
+**doomer** - a desktop first-person shooter with a Diablo-like loot loop, written in C++23 on raylib and Box3D. Tracked in Linear under team `ADE`, project `adencraft`. The architecture is [runtime_architecture.md](docs/design/runtime_architecture.md); the settled decisions are [locked_decisions.md](docs/reference/locked_decisions.md).
+
+This file is auto-loaded every session and defines how Claude works in this repo.
 
 ---
 
@@ -118,10 +118,14 @@ Decisions and continuity enforcement guidelines are defined in [session_protocol
 
 ## Commit Messages and Pull Requests
 
-Configure an attribution trailer for the project and apply it consistently. Set `<co-author-trailer>` to your preferred line (e.g. `Co-authored with Claude`), or remove this section if you do not want one.
+The project's attribution trailer is exactly:
 
-- Every commit message ends with the `<co-author-trailer>`.
-- Every PR body ends with the `<co-author-trailer>`.
+```
+Co-authored with Claude
+```
+
+- Every commit message ends with that line.
+- Every PR body ends with that line.
 - Do not append any other auto-generated footer unless the developer asks for one.
 
 ---
