@@ -20,6 +20,7 @@ target_include_directories(platform_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # Engine: no third-party dependency, no game nouns. Builds in both
 # configurations so the headless tests exercise the real thing.
 add_library(engine STATIC
+  engine/event_dispatch.cpp
   engine/fixed_step.cpp
 )
 target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
