@@ -28,7 +28,7 @@ All new behavior is written test-first: a failing test that captures the behavio
 
 ## Branch & merge (do not deviate)
 
-`main` is protected - never merge to `main` or commit app work straight to it. All work branches off the long-lived `dev` integration branch as `feature/ADE-<number>` or `bugfix/ADE-<number>` (the Linear issue id); `dev -> main` is a separate, maintainer-only promotion. Full model: [core_protocol.md](../../docs/protocol/core_protocol.md#branching-model-dev-integration).
+`main` is protected - never merge to `main` or commit app work straight to it. All work branches off the long-lived `dev` integration branch as `feature/<issue>-<slug>` or `bugfix/<issue>-<slug>` (the GitHub issue number); `dev -> main` is a separate, maintainer-only promotion. Full model: [core_protocol.md](../../docs/protocol/core_protocol.md#branching-model-dev-integration).
 
 ## Git safety (never rewrite shared history)
 

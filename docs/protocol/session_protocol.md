@@ -9,14 +9,14 @@
 **Tracked Session:**
 
 - Work-Item Requirement
-   - A Linear issue (in the `ADE` team) must exist before any branch is created - no exceptions.
+   - A GitHub issue (in this repository) must exist before any branch is created - no exceptions.
    - Create one first if it does not already exist (`/new-work-item`).
 - Work-Item Confirmation Requirement
    - Ask the developer which work item the session is against before proceeding.
 - Branch Confirmation Requirement
    - Prompt the developer for the branch to open the session against.
 - Branch Naming Requirement
-   - Create a new branch off `dev` (before any changes) following the convention `feature/ADE-<number>` (any non-bug work) or `bugfix/ADE-<number>` (a fix), e.g. `feature/ADE-270`. `ADE-<number>` is the work item's Linear issue id; the `feature/` or `bugfix/` prefix marks the kind of work.
+   - Create a new branch off `dev` (before any changes) following the convention `feature/<issue>-<slug>` (any non-bug work) or `bugfix/<issue>-<slug>` (a fix), e.g. `feature/33-player-controller`. `<issue>` is the work item's GitHub issue number; the `feature/` or `bugfix/` prefix marks the kind of work.
    - App work branches off `dev` (Branch & Merge Workflow); see the Branching Model in [core_protocol.md](core_protocol.md#branching-model-dev-integration).
 - Changelog Requirement
    - At session end, prepend an entry to the **top** of `docs/changelog.md` in the rolling format: a **date line** `YYYY-MM-DD HH:MM TZ` (the author's local time + their timezone abbreviation, no session numbers - branch-merge-safe), then the **person** on the next line, then a `## Title` heading, then a **two-sentence body opening with the bracketed category tag** (`[feature]` | `[enhancement]` | `[bug]` | `[internal]`), then a `Tickets:` footer. The format rules live in the `## Changelog format` section at the bottom of `changelog.md`; the full template is in the `session-end` skill/workflow. Keep **max 20 entries**; drop the oldest.
@@ -62,7 +62,7 @@ When initiating a design session (e.g., data model, verification model, API stru
 2. Session Type
    - The developer declares the session type (or the agent asks).
 3. Select the Work
-   - Surface the open, ready Linear issues from the `ADE` team, ordered by priority.
+   - Surface the open, ready GitHub issues from this repository, ordered by priority.
    - The developer picks the item(s) before any branch is created or work begins.
 4. Read Relevant Markdown
    - The agent determines and reads the relevant markdown files under `docs/design/` related to the selected work (e.g. an entity index, the style guide).
@@ -87,7 +87,7 @@ When initiating a design session (e.g., data model, verification model, API stru
    - Any item not fully resolved this session must become a tracked work item before session close.
    - No open-ended prose left in any doc or changelog entry - reference the work-item id only.
 7. Next-Up Requirement
-   - Close every tracked session with an explicit "Up Next" list of Linear issue identifiers in priority order, pulled from Linear.
+   - Close every tracked session with an explicit "Up Next" list of GitHub issue numbers in priority order, pulled from GitHub Issues.
 8. Confirmation Requirement
    - All required document updates have been applied.
    - Any decision affecting guiding documents must be reflected before session close.
@@ -106,7 +106,7 @@ The role **agents** (`simulation`, `presentation`, `content`) and the scaffoldin
 
 ### The loop (one work item, pick to merge)
 
-1. **Pick the work item** at session start and branch `feature/ADE-<number>` or `bugfix/ADE-<number>` off `dev`.
+1. **Pick the work item** at session start and branch `feature/<issue>-<slug>` or `bugfix/<issue>-<slug>` off `dev`.
 2. **Assign the matching agent** for the surface and hand it a *grounded* spec: real file paths, the tokens or contract to honor, and the exact test to write. Read enough of the codebase first that the spec names real files and conventions, not guesses.
 3. **Agent runs the skill, test-first:** failing test shown, then implementation, then green (lint + typecheck + tests). The agent self-audits the diff against its protocol before declaring done.
 4. **Orchestrator verifies independently** - re-run the tests; for a change that is *observable*, exercise it. Never merge on the agent's word alone.
@@ -148,7 +148,7 @@ Adapt the source-tree rows to your repo layout. The doc rows below are the frame
 | docs/reference/locked_decisions.md    | Current decisions, locked items, open questions, project status.                                     | Update every Tracked session end.                              |
 | docs/reference/glossary.md            | Shared vocabulary. Definitions only.                                                                 | Add when a new term is introduced or renamed.                  |
 | docs/reference/integrations.md        | External-service runbook - setup steps and env vars per service.                                     | Update when a new external service is added or changed.        |
-| docs/reference/authoring.md           | Linear issue + PR summary templates.                                                                 | Update when the story or PR format changes.                    |
+| docs/reference/authoring.md           | GitHub issue + PR summary templates.                                                                 | Update when the story or PR format changes.                    |
 | docs/changelog.md                     | Recent session log. 20-entry max.                                                                    | Insert at top via str_replace. Never rewrite.                  |
 | docs/design/runtime_architecture.md| Core runtime architecture: loop, layers, entities, events, save, levels.                                           | Update when a runtime architecture decision changes.|
 | docs/design/style_guide.md            | Visual language - colors, type, spacing, components, accessibility.                                  | Update when a token or UX rule changes.                        |

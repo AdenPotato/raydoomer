@@ -6,11 +6,11 @@ For how this layer relates to the other editor layer(s), see the **Editor suppor
 
 ## What's here
 
-| Path                                      | Windsurf primitive      | Holds                                                                                                |
-|-------------------------------------------|-------------------------|------------------------------------------------------------------------------------------------------|
-| `rules/core.md`                           | Rule (`always_on`)      | Condensed always-on behavior rules; links out to the protocols.                                      |
-| `rules/{simulation,presentation,content}.md` | Rule (`model_decision`) | Per-surface role context, loaded on demand by description.                                           |
-| `workflows/*.md`                          | Workflow (`/slash`)     | Deliberate session ceremonies: `/session-start`, `/session-end`, `/promote`.                         |
+| Path                                      | Windsurf primitive      | Holds                                                                                                                    |
+|-------------------------------------------|-------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| `rules/core.md`                           | Rule (`always_on`)      | Condensed always-on behavior rules; links out to the protocols.                                                          |
+| `rules/{simulation,presentation,content}.md` | Rule (`model_decision`) | Per-surface role context, loaded on demand by description.                                                            |
+| `workflows/*.md`                          | Workflow (`/slash`)     | Deliberate session ceremonies: `/session-start`, `/session-end`, `/promote`.                                             |
 | `skills/<name>/SKILL.md`                  | Skill (auto / `@name`)  | `new-work-item`, `new-design`, `new-system`, `new-hud`, `engine-api-change`, `data-change`, `write-story`, `pr-summary`. |
 
 ## Requirements

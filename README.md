@@ -55,7 +55,7 @@ For step-by-step setup with each editor (and how to share the framework across r
 ## Core rules at a glance
 
 - **Test-first.** A failing test that captures the behavior exists and is shown failing before any implementation.
-- **`main` is protected.** Work branches off `dev` as `feature/ADE-<number>` or `bugfix/ADE-<number>` (the Linear issue id); `dev -> main` is a separate, maintainer-only promotion.
+- **`main` is protected.** Work branches off `dev` as `feature/<issue>-<slug>` or `bugfix/<issue>-<slug>` (the GitHub issue number); `dev -> main` is a separate, maintainer-only promotion.
 - **Locked decisions are canon.** Work that contradicts one halts until the decision is unlocked, changed, documented, and re-locked.
 - **Never rewrite shared history.** The agent only fast-forward pushes; force-push and history rewrites need explicit approval.
 

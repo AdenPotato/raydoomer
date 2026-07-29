@@ -53,7 +53,7 @@ The app is built on a long-lived **`dev`** integration branch; **`main`** stays 
 - **`main`** - stable trunk: docs, protocol, and foundations (build system, engine seams). Kept clean.
 - **`dev`** - game integration: engine subsystems, gameplay systems, content, playtesting. **All game work goes here.**
 - **Sync `main -> dev`** regularly (`git checkout dev && git merge main`) so doc/foundation updates flow in.
-- **Feature or bugfix branch off `dev`.** The agent works on a `feature/ADE-<number>` branch (any non-bug work) or a `bugfix/ADE-<number>` branch (a fix), where `ADE-<number>` is the work item's Linear issue id, e.g. `feature/ADE-270`.
+- **Feature or bugfix branch off `dev`.** The agent works on a `feature/<issue>-<slug>` branch (any non-bug work) or a `bugfix/<issue>-<slug>` branch (a fix), where `<issue>` is the work item's GitHub issue number, e.g. `feature/33-player-controller`.
 - **Order of operations (critical):**
   1. The agent gets the branch green: lint + typecheck + tests (test-first), then pushes the branch (CI runs).
   2. **A reviewer / QA exercises the change** as required by [qa_protocol.md](qa_protocol.md). The agent does **not** open the PR or merge yet.

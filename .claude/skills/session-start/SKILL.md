@@ -36,7 +36,13 @@ If the developer has not yet declared the session type, ask: **Tracked, Design, 
 
 ## Step 3 - Select the work
 
-Surface the open, ready Linear issues from the `ADE` team, ordered by priority, as a numbered list for the developer to choose from. Use the Linear MCP tools (`list_issues`, filtered by team and state). Do not create a branch or make any changes before the developer selects.
+Surface the open GitHub issues as a numbered list for the developer to choose from:
+
+```bash
+gh issue list --state open --limit 50
+```
+
+Order by priority label (`priority:urgent` first) and exclude issues labelled `epic` from the pick list - an epic is a grouping, not a unit of work. Do not create a branch or make any changes before the developer selects.
 
 ## Step 4 - Read relevant design markdown
 
@@ -46,4 +52,4 @@ Based on the selected work, determine which files under `docs/design/` are relev
 
 State which markdown files were read and why. Ask the developer to confirm before proceeding.
 
-Only after confirmation: for **Tracked sessions**, create the branch off `dev` as `feature/ADE-<number>` (any non-bug work) or `bugfix/ADE-<number>` (a fix), where `ADE-<number>` is the work item's Linear issue id.
+Only after confirmation: for **Tracked sessions**, create the branch off `dev` as `feature/<issue>-<slug>` (any non-bug work) or `bugfix/<issue>-<slug>` (a fix), where `<issue>` is the work item's GitHub issue number.

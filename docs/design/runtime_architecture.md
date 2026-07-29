@@ -1,6 +1,6 @@
 # Runtime Architecture
 
-**Scope:** the core runtime architecture for `doomer` - a desktop C++ shooter with a Diablo-like loot loop. This document fulfils `ADE-5` ("Define core runtime architecture") and establishes the boundaries between runtime, gameplay systems, content integration, and save/load.
+**Scope:** the core runtime architecture for `doomer` - a desktop C++ shooter with a Diablo-like loot loop. This document fulfils `#9` ("Define core runtime architecture") and establishes the boundaries between runtime, gameplay systems, content integration, and save/load.
 
 **This is MVP structure, not a general-purpose reusable engine.** Where a choice traded generality for getting the loop playable, that is deliberate and noted.
 
@@ -15,7 +15,7 @@
 | Base library  | raylib 5.x - window, input, audio, 3D rendering. The game owns its own main loop.          |
 | Language      | C++23                                                                                      |
 | Build         | CMake + FetchContent                                                                       |
-| Target        | Windows, cross-compiled with MinGW-w64 (verified, ADE-22)                                  |
+| Target        | Windows, cross-compiled with MinGW-w64 (verified, PR #1)                                   |
 | Dev host      | WSL2; cross-compile to Windows, run the .exe natively on the host                          |
 | Tests         | GoogleTest + GoogleMock                                                                    |
 | Entity model  | Object-oriented hierarchy with injected context                                            |
@@ -221,7 +221,7 @@ Two consequences worth stating outright:
 
 ## Save model
 
-Saves are written at **level boundaries** - on level exit (`ADE-19`). Mid-level world state is never serialized.
+Saves are written at **level boundaries** - on level exit (`#40`). Mid-level world state is never serialized.
 
 | Persisted                | Not persisted                          |
 |--------------------------|----------------------------------------|
@@ -296,7 +296,7 @@ Audio is **in scope**. raylib provides `LoadSound`/`PlaySound` for WAV and strea
 
 Audio is a `platform/` capability behind the seam like any other device. Gameplay emits an event; a presentation-side handler plays the sound. No entity plays audio directly.
 
-This is in scope specifically because `ADE-13` (damage feedback) and `ADE-14` (combat reactions) are partly audio problems, and a silent build makes those playtests much weaker.
+This is in scope specifically because `#34` (damage feedback) and `#35` (combat reactions) are partly audio problems, and a silent build makes those playtests much weaker.
 
 ---
 
@@ -336,8 +336,8 @@ Explicitly deferred. Naming these is what stops speculative generality leaking i
 
 | Risk                                                                                    | Action                                                                 |
 |-----------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-| The game's real frame budget is unmeasured. ADE-22 measured a trivial scene, not a populated level | Re-measure once sprites, physics, and a HUD are in a level. |
-| `ADE-21` mapping is underscoped - deriving a map from brush geometry is materially harder than a grid         | Rescope the issue before it is picked up.        |
+| The game's real frame budget is unmeasured. PR #1 measured a trivial scene, not a populated level  | Re-measure once sprites, physics, and a HUD are in a level. |
+| `#42` mapping is underscoped - deriving a map from brush geometry is materially harder than a grid            | Rescope the issue before it is picked up.        |
 | Doom assets cannot be distributed                                                      | FreeDoom swap verified before any release; `resources/` gitignored.     |
 | Brush lists get painful to hand-author past a few rooms                                | Spike issue evaluates authoring ergonomics after roughly three levels.  |
 

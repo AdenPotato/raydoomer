@@ -8,10 +8,10 @@ For how this layer corresponds to the Windsurf layer (`.windsurf/`), see the **E
 
 ## What's here
 
-| Path                                       | Claude Code primitive          | Holds                                                                                          |
-|--------------------------------------------|--------------------------------|------------------------------------------------------------------------------------------------|
-| [`../CLAUDE.md`](../CLAUDE.md)             | Project instructions (auto-loaded) | Behavior rules, response style, git-safety, TDD rule; the always-on layer.                 |
-| `agents/{simulation,presentation,content}.md` | Subagent (Agent tool)          | Per-surface role agents; each owns one surface and defers to its protocol.                      |
+| Path                                       | Claude Code primitive          | Holds                                                                                                                                                                                               |
+|--------------------------------------------|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`../CLAUDE.md`](../CLAUDE.md)             | Project instructions (auto-loaded) | Behavior rules, response style, git-safety, TDD rule; the always-on layer.                                                                                                                      |
+| `agents/{simulation,presentation,content}.md` | Subagent (Agent tool)          | Per-surface role agents; each owns one surface and defers to its protocol.                                                                                                                       |
 | `skills/<name>/SKILL.md`                   | Skill (`/skill-name`)          | Ordered, test-first checklists: `session-start`, `session-end`, `promote`, `new-work-item`, `new-design`, `new-system`, `new-hud`, `engine-api-change`, `data-change`, `write-story`, `pr-summary`. |
 
 ## How Claude Code consumes these

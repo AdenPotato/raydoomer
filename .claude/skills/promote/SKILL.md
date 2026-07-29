@@ -9,11 +9,11 @@ Use this skill when the developer says "promote to tracked" during a Sandbox ses
 
 Ask: **What work item is this session being promoted against?**
 
-If none exists yet, run `/new-work-item` first to create one, then return here. Verify the issue exists and is open in Linear.
+If none exists yet, run `/new-work-item` first to create one, then return here. Verify the issue exists and is open in GitHub Issues.
 
 ## Step 2 - Determine the branch name
 
-Branch naming convention (off `dev`): `feature/ADE-<number>` for any non-bug work, `bugfix/ADE-<number>` for a fix. `ADE-<number>` is the work item's Linear issue id. Check recent branch names to confirm the pattern in use:
+Branch naming convention (off `dev`): `feature/<issue>-<slug>` for any non-bug work, `bugfix/<issue>-<slug>` for a fix. `<issue>` is the work item's GitHub issue number. Check recent branch names to confirm the pattern in use:
 
 ```bash
 git branch -a | head -20
@@ -21,12 +21,12 @@ git branch -a | head -20
 
 ## Step 3 - Confirm the branch name with the developer
 
-State the proposed branch name (e.g., `feature/ADE-154`) and ask the developer to confirm before creating it.
+State the proposed branch name (e.g., `feature/33-player-controller`) and ask the developer to confirm before creating it.
 
 ## Step 4 - Create the branch
 
 ```bash
-git checkout -b feature/ADE-<number>   # or bugfix/ADE-<number>
+git checkout -b feature/<issue>-<slug>   # or bugfix/<issue>-<slug>
 git branch --show-current
 ```
 
