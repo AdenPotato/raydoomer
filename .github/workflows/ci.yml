@@ -34,10 +34,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The runner's default is GCC 13, several versions behind the dev host.
+      # A gap that wide produces CI-only surprises: GCC 13 compiles C++23 but
+      # reports __cplusplus as 202100L, which failed this job on its first run.
+      # Pinning a newer compiler keeps CI and local closer together.
       - name: Install build tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build
+          sudo apt-get install -y ninja-build g++-14
+
+      - name: Use GCC 14
+        run: |
+          echo "CC=gcc-14"  >> "$GITHUB_ENV"
+          echo "CXX=g++-14" >> "$GITHUB_ENV"
 
       - name: Cache fetched dependencies
         uses: actions/cache@v4

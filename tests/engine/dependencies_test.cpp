@@ -9,7 +9,9 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
+#include <expected>
 #include <string>
+#include <version>
 
 namespace {
 
@@ -47,15 +49,30 @@ TEST(Dependencies, JsonParsesAContentDefinition) {
 TEST(Dependencies, JsonReportsMalformedInputRatherThanCrashing) {
     // content_protocol.md requires loaders to report a typed error, never crash.
     // This pins that the parser is configured to throw rather than terminate.
+    // parse() is [[nodiscard]], and a (void) cast does not suppress that in GCC.
+    // Bind the result instead so the warning does not fire.
     EXPECT_THROW(
-        { (void)nlohmann::json::parse(R"({ "unterminated": )"); },
+        {
+            [[maybe_unused]] auto discarded =
+                nlohmann::json::parse(R"({ "unterminated": )");
+        },
         nlohmann::json::parse_error);
 }
 
 TEST(Dependencies, Cpp23IsEnabled) {
     // The locked standard. A misconfigured CMAKE_CXX_STANDARD silently drops to
     // an older mode, so assert it rather than trust the build file.
-    static_assert(__cplusplus >= 202302L, "C++23 is required (locked_decisions.md)");
+    //
+    // Deliberately NOT `__cplusplus >= 202302L`. GCC 13 compiles C++23 but still
+    // reports the in-progress value 202100L; only GCC 14 bumped it. Asserting
+    // the final value tests a version-reporting quirk rather than a capability,
+    // and fails on a compiler that is genuinely fine. Found by CI, on a runner
+    // three GCC versions behind the dev host.
+    static_assert(__cplusplus > 202002L, "C++23 mode is required (locked_decisions.md)");
+
+    // Assert the capability the design actually depends on: typed error results
+    // at the engine boundary (engine_protocol.md, runtime_architecture.md).
+    static_assert(__cpp_lib_expected >= 202202L, "std::expected is required");
     SUCCEED();
 }
 
