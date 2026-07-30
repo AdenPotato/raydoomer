@@ -34,6 +34,24 @@ public:
 
     /// Draws a wireframe sphere.
     virtual void drawWireSphere(Point3 center, float radius, Color color) = 0;
+
+    /// Draws a filled axis-aligned box.
+    /// @param halfExtents Half the size on each axis, matching @ref drawWireBox.
+    virtual void drawSolidBox(Point3 center, Vec3 halfExtents, Color color) = 0;
+
+    /// Draws a filled sphere.
+    virtual void drawSolidSphere(Point3 center, float radius, Color color) = 0;
+
+    /// Draws a line segment.
+    ///
+    /// @remarks
+    /// The workhorse of solver debug output - contact normals, AABB edges, and
+    /// transform axes are all segments.
+    virtual void drawLine(Point3 from, Point3 to, Color color) = 0;
+
+    /// Draws a point marker.
+    /// @param size Screen-independent world size; implementations may clamp it.
+    virtual void drawPoint(Point3 position, float size, Color color) = 0;
 };
 
 } // namespace platform

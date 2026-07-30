@@ -2,6 +2,7 @@
 
 #include "engine/violation.h"
 #include "platform/math_types.h"
+#include "platform/renderer.h"
 
 #include <cstdint>
 #include <functional>
@@ -152,6 +153,31 @@ public:
     /// world allocates nothing, which matters because this runs in the render
     /// path (engine_protocol.md - nothing allocates in the hot path).
     void forEachBody(double alpha, const std::function<void(const BodyView&)>& visit) const;
+
+    /// What the solver debug overlay should draw.
+    ///
+    /// @remarks
+    /// Shapes default to **off**: the interpolated view already draws those, and
+    /// more smoothly. What this overlay adds is everything our own record of the
+    /// world cannot show, because it comes from the solver rather than from us.
+    struct SolverDebugOptions {
+        bool shapes = false;         ///< Solver's own shape outlines. Not interpolated.
+        bool contacts = true;        ///< Actual contact points.
+        bool contactNormals = true;  ///< Direction of each contact.
+        bool bounds = false;         ///< Broadphase AABBs.
+        bool centerOfMass = false;   ///< Mass and centre of mass of dynamic bodies.
+    };
+
+    /// Draws the solver's own view of the world through `renderer`.
+    ///
+    /// @remarks
+    /// Authoritative in a way the interpolated view is not: it reports what
+    /// Box3D actually holds, so a mismatch between our record of a shape and the
+    /// solver's is visible here and nowhere else.
+    ///
+    /// Drawn at the current simulation transform, **not interpolated**. For a
+    /// diagnostic overlay that is the right trade - truth over smoothness.
+    void debugDrawSolver(platform::Renderer& renderer, const SolverDebugOptions& options) const;
 
     /// Advances the simulation and publishes contact events.
     /// @param dt     Always the fixed tick, never a frame delta.

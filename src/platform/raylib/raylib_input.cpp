@@ -15,6 +15,11 @@ int toRaylibKey(Key key) {
         case Key::Jump:     return KEY_SPACE;
         case Key::Fire:     return KEY_LEFT_CONTROL;
         case Key::Interact: return KEY_E;
+
+        // Function keys, so a debug control can never collide with a game action.
+        case Key::DebugView:      return KEY_F1;
+        case Key::DebugCycleMode: return KEY_F2;
+        case Key::DebugOverlay:   return KEY_F3;
     }
     return KEY_NULL;
 }

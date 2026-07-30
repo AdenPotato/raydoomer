@@ -16,6 +16,10 @@ public:
     void endScene() override;
     void drawWireBox(Point3 center, Vec3 halfExtents, Color color) override;
     void drawWireSphere(Point3 center, float radius, Color color) override;
+    void drawSolidBox(Point3 center, Vec3 halfExtents, Color color) override;
+    void drawSolidSphere(Point3 center, float radius, Color color) override;
+    void drawLine(Point3 from, Point3 to, Color color) override;
+    void drawPoint(Point3 position, float size, Color color) override;
 };
 
 } // namespace platform

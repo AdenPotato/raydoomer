@@ -255,6 +255,142 @@ void PhysicsWorld::forEachBody(double alpha,
     }
 }
 
+namespace {
+
+/// Bridges Box3D's C callbacks to our renderer.
+///
+/// A pointer to this is handed to Box3D as the opaque `context`, so every
+/// callback can reach the renderer without a global.
+struct SolverDrawBridge {
+    platform::Renderer* renderer;
+};
+
+platform::Renderer& rendererFrom(void* context) {
+    return *static_cast<SolverDrawBridge*>(context)->renderer;
+}
+
+/// b3HexColor packs RGB into a single integer.
+platform::Color fromHex(b3HexColor hex) {
+    const auto value = static_cast<uint32_t>(hex);
+    return platform::Color{
+        static_cast<uint8_t>((value >> 16) & 0xFF),
+        static_cast<uint8_t>((value >> 8) & 0xFF),
+        static_cast<uint8_t>(value & 0xFF),
+        255,
+    };
+}
+
+Point3 pointFrom(b3Pos p) {
+    return Point3{ p.x, p.y, p.z };
+}
+
+void drawSegment(b3Pos p1, b3Pos p2, b3HexColor color, void* context) {
+    rendererFrom(context).drawLine(pointFrom(p1), pointFrom(p2), fromHex(color));
+}
+
+void drawPoint(b3Pos p, float size, b3HexColor color, void* context) {
+    rendererFrom(context).drawPoint(pointFrom(p), size, fromHex(color));
+}
+
+void drawSphere(b3Pos p, float radius, b3HexColor color, float /*alpha*/, void* context) {
+    rendererFrom(context).drawWireSphere(pointFrom(p), radius, fromHex(color));
+}
+
+void drawBounds(b3AABB aabb, b3HexColor color, void* context) {
+    const Point3 center{
+        (static_cast<double>(aabb.lowerBound.x) + aabb.upperBound.x) * 0.5,
+        (static_cast<double>(aabb.lowerBound.y) + aabb.upperBound.y) * 0.5,
+        (static_cast<double>(aabb.lowerBound.z) + aabb.upperBound.z) * 0.5,
+    };
+    const Vec3 halfExtents{
+        (aabb.upperBound.x - aabb.lowerBound.x) * 0.5f,
+        (aabb.upperBound.y - aabb.lowerBound.y) * 0.5f,
+        (aabb.upperBound.z - aabb.lowerBound.z) * 0.5f,
+    };
+    rendererFrom(context).drawWireBox(center, halfExtents, fromHex(color));
+}
+
+void drawCapsule(b3Pos p1, b3Pos p2, float radius, b3HexColor color, float /*alpha*/,
+                 void* context) {
+    // Approximated as a segment plus end caps. No capsule shapes exist yet;
+    // this is here so the callback is never null.
+    platform::Renderer& renderer = rendererFrom(context);
+    const platform::Color c = fromHex(color);
+    renderer.drawLine(pointFrom(p1), pointFrom(p2), c);
+    renderer.drawWireSphere(pointFrom(p1), radius, c);
+    renderer.drawWireSphere(pointFrom(p2), radius, c);
+}
+
+void drawTransform(b3WorldTransform transform, void* context) {
+    // Origin marker only. Drawing the axes needs the quaternion rotated into
+    // basis vectors, which is more than a diagnostic needs today.
+    rendererFrom(context).drawPoint(pointFrom(transform.p), 0.1f,
+                                    platform::Color{ 255, 255, 0, 255 });
+}
+
+void drawString(b3Pos p, const char* /*text*/, b3HexColor color, void* context) {
+    // No world-space text yet. Marked with a point so the information is not
+    // silently lost.
+    rendererFrom(context).drawPoint(pointFrom(p), 0.05f, fromHex(color));
+}
+
+void drawUserShape(void* /*userShape*/, b3WorldTransform transform, b3HexColor color,
+                   void* context) {
+    // Only reached if debug shape callbacks were registered, which they are not.
+    rendererFrom(context).drawPoint(pointFrom(transform.p), 0.1f, fromHex(color));
+}
+
+void drawBox(b3Vec3 extents, b3WorldTransform transform, b3HexColor color, void* context) {
+    // Rotation is dropped: the renderer only draws axis-aligned boxes today.
+    // Correct for the level geometry we author, and wrong the moment a rotated
+    // body exists - which is why oriented boxes belong with the real renderer,
+    // not this diagnostic.
+    rendererFrom(context).drawWireBox(pointFrom(transform.p),
+                                      Vec3{ extents.x, extents.y, extents.z },
+                                      fromHex(color));
+}
+
+} // namespace
+
+void PhysicsWorld::debugDrawSolver(platform::Renderer& renderer,
+                                   const SolverDebugOptions& options) const {
+    SolverDrawBridge bridge{ &renderer };
+
+    // Every callback is supplied, including ones this project has no use for.
+    // The header says null functions are skipped; in practice leaving any unset
+    // segfaults, so the contract is "provide them all".
+    b3DebugDraw draw{};
+    draw.context = &bridge;
+    draw.DrawSegmentFcn = &drawSegment;
+    draw.DrawPointFcn = &drawPoint;
+    draw.DrawSphereFcn = &drawSphere;
+    draw.DrawCapsuleFcn = &drawCapsule;
+    draw.DrawBoundsFcn = &drawBounds;
+    draw.DrawBoxFcn = &drawBox;
+    draw.DrawTransformFcn = &drawTransform;
+    draw.DrawStringFcn = &drawString;
+    draw.DrawShapeFcn = &drawUserShape;
+
+    // Scales Box3D uses when drawing forces and joints. Left at zero these can
+    // produce degenerate geometry.
+    draw.forceScale = 1.0f;
+    draw.jointScale = 1.0f;
+
+    // Culling bounds. Without a generous volume here everything is culled and
+    // the overlay silently draws nothing.
+    constexpr float kFar = 1.0e6f;
+    draw.drawingBounds = b3AABB{ b3Vec3{ -kFar, -kFar, -kFar }, b3Vec3{ kFar, kFar, kFar } };
+
+    draw.drawShapes = options.shapes;
+    draw.drawContacts = options.contacts;
+    draw.drawContactNormals = options.contactNormals;
+    draw.drawBounds = options.bounds;
+    draw.drawMass = options.centerOfMass;
+
+    // All collision categories.
+    b3World_Draw(impl_->world, &draw, UINT64_MAX);
+}
+
 int PhysicsWorld::bodyCount() const {
     return impl_->liveBodies;
 }

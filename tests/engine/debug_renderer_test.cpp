@@ -32,7 +32,31 @@ public:
                 (override));
     MOCK_METHOD(void, drawWireSphere,
                 (platform::Point3 center, float radius, platform::Color color), (override));
+    MOCK_METHOD(void, drawSolidBox,
+                (platform::Point3 center, platform::Vec3 halfExtents, platform::Color color),
+                (override));
+    MOCK_METHOD(void, drawSolidSphere,
+                (platform::Point3 center, float radius, platform::Color color), (override));
+    MOCK_METHOD(void, drawLine,
+                (platform::Point3 from, platform::Point3 to, platform::Color color), (override));
+    MOCK_METHOD(void, drawPoint,
+                (platform::Point3 position, float size, platform::Color color), (override));
 };
+
+// Puts one sphere and one box in the world, so a mode test covers both
+// primitives at once.
+void addOneOfEachShape(engine::PhysicsWorld& world) {
+    engine::BodyDef sphere;
+    sphere.type = engine::BodyType::Static;
+    sphere.shape = engine::SphereShape{ 0.5f };
+    world.createBody(sphere);
+
+    engine::BodyDef box;
+    box.type = engine::BodyType::Static;
+    box.position = engine::Point3{ 4.0, 0.0, 0.0 };
+    box.shape = engine::BoxShape{ engine::Vec3{ 1.0f, 1.0f, 1.0f } };
+    world.createBody(box);
+}
 
 engine::EventDispatcher idleDispatcher() {
     engine::EventDispatcher events;
@@ -253,6 +277,223 @@ TEST(DebugRenderer, DrawingDoesNotChangeSimulationState) {
 
     EXPECT_DOUBLE_EQ(before, after);
     EXPECT_EQ(world.bodyCount(), 1);
+}
+
+// --- Draw modes -------------------------------------------------------------
+
+TEST(DebugRenderer, DefaultsToWireframe) {
+    engine::DebugRenderer debug;
+    EXPECT_EQ(debug.drawMode(), engine::DebugDrawMode::Wireframe);
+}
+
+TEST(DebugRenderer, WireframeModeDrawsOnlyWireframes) {
+    NiceMock<MockRenderer> renderer;
+    engine::PhysicsWorld world;
+    addOneOfEachShape(world);
+
+    engine::DebugRenderer debug;
+    debug.setEnabled(true);
+    debug.setDrawMode(engine::DebugDrawMode::Wireframe);
+
+    EXPECT_CALL(renderer, drawWireSphere(_, _, _)).Times(1);
+    EXPECT_CALL(renderer, drawWireBox(_, _, _)).Times(1);
+    EXPECT_CALL(renderer, drawSolidSphere(_, _, _)).Times(0);
+    EXPECT_CALL(renderer, drawSolidBox(_, _, _)).Times(0);
+
+    debug.draw(renderer, world, 0.0);
+}
+
+TEST(DebugRenderer, SolidModeDrawsOnlySolids) {
+    NiceMock<MockRenderer> renderer;
+    engine::PhysicsWorld world;
+    addOneOfEachShape(world);
+
+    engine::DebugRenderer debug;
+    debug.setEnabled(true);
+    debug.setDrawMode(engine::DebugDrawMode::Solid);
+
+    EXPECT_CALL(renderer, drawSolidSphere(_, _, _)).Times(1);
+    EXPECT_CALL(renderer, drawSolidBox(_, _, _)).Times(1);
+    EXPECT_CALL(renderer, drawWireSphere(_, _, _)).Times(0);
+    EXPECT_CALL(renderer, drawWireBox(_, _, _)).Times(0);
+
+    debug.draw(renderer, world, 0.0);
+}
+
+TEST(DebugRenderer, BothModeDrawsSolidsAndWireframes) {
+    NiceMock<MockRenderer> renderer;
+    engine::PhysicsWorld world;
+    addOneOfEachShape(world);
+
+    engine::DebugRenderer debug;
+    debug.setEnabled(true);
+    debug.setDrawMode(engine::DebugDrawMode::Both);
+
+    EXPECT_CALL(renderer, drawSolidSphere(_, _, _)).Times(1);
+    EXPECT_CALL(renderer, drawSolidBox(_, _, _)).Times(1);
+    EXPECT_CALL(renderer, drawWireSphere(_, _, _)).Times(1);
+    EXPECT_CALL(renderer, drawWireBox(_, _, _)).Times(1);
+
+    debug.draw(renderer, world, 0.0);
+}
+
+TEST(DebugRenderer, BothModeDrawsTheSolidBeforeTheWireframe) {
+    // Order is the whole point of this mode: a wireframe drawn under a solid is
+    // hidden by it, which would make the mode indistinguishable from Solid.
+    MockRenderer renderer;
+    engine::PhysicsWorld world;
+
+    engine::BodyDef sphere;
+    sphere.type = engine::BodyType::Static;
+    sphere.shape = engine::SphereShape{ 0.5f };
+    world.createBody(sphere);
+
+    engine::DebugRenderer debug;
+    debug.setEnabled(true);
+    debug.setDrawMode(engine::DebugDrawMode::Both);
+
+    ::testing::InSequence sequence;
+    EXPECT_CALL(renderer, beginScene(_));
+    EXPECT_CALL(renderer, drawSolidSphere(_, _, _));
+    EXPECT_CALL(renderer, drawWireSphere(_, _, _));
+    EXPECT_CALL(renderer, endScene());
+
+    debug.draw(renderer, world, 0.0);
+}
+
+TEST(DebugRenderer, CyclingTheModeVisitsEveryModeAndReturnsToTheStart) {
+    // One key cycles all three, so it must be a closed loop with no dead end.
+    engine::DebugRenderer debug;
+    ASSERT_EQ(debug.drawMode(), engine::DebugDrawMode::Wireframe);
+
+    debug.cycleDrawMode();
+    EXPECT_EQ(debug.drawMode(), engine::DebugDrawMode::Solid);
+
+    debug.cycleDrawMode();
+    EXPECT_EQ(debug.drawMode(), engine::DebugDrawMode::Both);
+
+    debug.cycleDrawMode();
+    EXPECT_EQ(debug.drawMode(), engine::DebugDrawMode::Wireframe);
+}
+
+TEST(DebugRenderer, ChangingModeDoesNotChangeWhetherItIsEnabled) {
+    // The two toggles are independent: cycling the mode while hidden must not
+    // reveal the view, and vice versa.
+    engine::DebugRenderer debug;
+    debug.setEnabled(false);
+
+    debug.cycleDrawMode();
+    debug.cycleDrawMode();
+
+    EXPECT_FALSE(debug.isEnabled());
+}
+
+TEST(DebugRenderer, SolidModeStillDrawsNothingWhenDisabled) {
+    NiceMock<MockRenderer> renderer;
+    engine::PhysicsWorld world;
+    addOneOfEachShape(world);
+
+    engine::DebugRenderer debug;
+    debug.setEnabled(false);
+    debug.setDrawMode(engine::DebugDrawMode::Solid);
+
+    EXPECT_CALL(renderer, drawSolidSphere(_, _, _)).Times(0);
+    EXPECT_CALL(renderer, drawSolidBox(_, _, _)).Times(0);
+
+    debug.draw(renderer, world, 0.0);
+}
+
+// --- Solver overlay ---------------------------------------------------------
+
+TEST(DebugRenderer, SolverOverlayIsOffByDefault) {
+    engine::DebugRenderer debug;
+    EXPECT_FALSE(debug.isSolverOverlayEnabled());
+}
+
+TEST(DebugRenderer, SolverOverlayDrawsNothingExtraWhenOff) {
+    NiceMock<MockRenderer> renderer;
+    engine::PhysicsWorld world;
+    addOneOfEachShape(world);
+
+    engine::DebugRenderer debug;
+    debug.setEnabled(true);
+    debug.setSolverOverlayEnabled(false);
+
+    // Solver output arrives as segments and points; the interpolated view uses
+    // neither, so their absence is a clean signal that the overlay stayed off.
+    EXPECT_CALL(renderer, drawLine(_, _, _)).Times(0);
+    EXPECT_CALL(renderer, drawPoint(_, _, _)).Times(0);
+
+    debug.draw(renderer, world, 0.0);
+}
+
+TEST(DebugRenderer, SolverOverlayDrawsContactsWhenBodiesTouch) {
+    // The whole point of the overlay: contact points come from Box3D and cannot
+    // be derived from our own record of the world.
+    NiceMock<MockRenderer> renderer;
+    engine::PhysicsWorld world;
+    auto events = idleDispatcher();
+
+    engine::BodyDef floorDef;
+    floorDef.type = engine::BodyType::Static;
+    floorDef.position = engine::Point3{ 0.0, 0.0, 0.0 };
+    floorDef.shape = engine::BoxShape{ engine::Vec3{ 10.0f, 0.5f, 10.0f } };
+    world.createBody(floorDef);
+
+    engine::BodyDef ballDef;
+    ballDef.type = engine::BodyType::Dynamic;
+    ballDef.position = engine::Point3{ 0.0, 2.0, 0.0 };
+    ballDef.shape = engine::SphereShape{ 0.5f };
+    world.createBody(ballDef);
+
+    // Land the ball, but do not let it settle. A 1m fall takes about 27 ticks;
+    // 40 leaves it freshly in contact and still awake.
+    //
+    // This matters: Box3D puts resting bodies to sleep, and a sleeping body
+    // stops reporting contacts. Stepping 120 ticks here produced zero solver
+    // output and looked exactly like a broken overlay.
+    for (int i = 0; i < 40; ++i) {
+        world.step(kTick, events);
+    }
+
+    engine::DebugRenderer debug;
+    debug.setEnabled(true);
+    debug.setSolverOverlayEnabled(true);
+
+    int solverPrimitives = 0;
+    ON_CALL(renderer, drawPoint(_, _, _)).WillByDefault([&](auto...) { ++solverPrimitives; });
+    ON_CALL(renderer, drawLine(_, _, _)).WillByDefault([&](auto...) { ++solverPrimitives; });
+
+    debug.draw(renderer, world, 0.0);
+
+    EXPECT_GT(solverPrimitives, 0) << "a resting contact produced no solver output";
+}
+
+TEST(DebugRenderer, SolverOverlayIsIndependentOfDrawMode) {
+    // Two separate toggles. Cycling the draw mode must not disturb the overlay.
+    engine::DebugRenderer debug;
+    debug.setSolverOverlayEnabled(true);
+
+    debug.cycleDrawMode();
+    debug.cycleDrawMode();
+
+    EXPECT_TRUE(debug.isSolverOverlayEnabled());
+}
+
+TEST(DebugRenderer, SolverOverlayRespectsTheMasterToggle) {
+    NiceMock<MockRenderer> renderer;
+    engine::PhysicsWorld world;
+    addOneOfEachShape(world);
+
+    engine::DebugRenderer debug;
+    debug.setEnabled(false);
+    debug.setSolverOverlayEnabled(true);
+
+    EXPECT_CALL(renderer, beginScene(_)).Times(0);
+    EXPECT_CALL(renderer, drawLine(_, _, _)).Times(0);
+    EXPECT_CALL(renderer, drawPoint(_, _, _)).Times(0);
+
+    debug.draw(renderer, world, 0.0);
 }
 
 TEST(DebugRenderer, StaticAndDynamicBodiesAreVisuallyDistinct) {

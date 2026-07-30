@@ -85,7 +85,13 @@ int main() {
     // On in a development build, off in a release build. Toggled with Interact.
     engine::DebugRenderer debugRenderer;
 
-    bool toggleWasDown = false;
+    // Edge detection for the debug controls, tracked here rather than by adding
+    // an isKeyPressed to the input seam: three callers in one place do not
+    // justify growing the interface.
+    bool viewWasDown = false;
+    bool modeWasDown = false;
+    bool overlayWasDown = false;
+
     double previousSeconds = clock.nowSeconds();
 
     while (!window.shouldClose()) {
@@ -97,13 +103,25 @@ int main() {
 
         input.poll();
 
-        // Edge-detected here rather than adding an isKeyPressed to the seam:
-        // one caller does not justify growing the interface.
-        const bool toggleIsDown = input.isKeyDown(platform::Key::Interact);
-        if (toggleIsDown && !toggleWasDown) {
+        // F1 toggles the view, F2 cycles wireframe/solid/both, F3 toggles the
+        // solver overlay.
+        const bool viewIsDown = input.isKeyDown(platform::Key::DebugView);
+        if (viewIsDown && !viewWasDown) {
             debugRenderer.setEnabled(!debugRenderer.isEnabled());
         }
-        toggleWasDown = toggleIsDown;
+        viewWasDown = viewIsDown;
+
+        const bool modeIsDown = input.isKeyDown(platform::Key::DebugCycleMode);
+        if (modeIsDown && !modeWasDown) {
+            debugRenderer.cycleDrawMode();
+        }
+        modeWasDown = modeIsDown;
+
+        const bool overlayIsDown = input.isKeyDown(platform::Key::DebugOverlay);
+        if (overlayIsDown && !overlayWasDown) {
+            debugRenderer.setSolverOverlayEnabled(!debugRenderer.isSolverOverlayEnabled());
+        }
+        overlayWasDown = overlayIsDown;
 
         const engine::StepResult step = accumulator.advance(frameDelta);
         for (int i = 0; i < step.ticks; ++i) {

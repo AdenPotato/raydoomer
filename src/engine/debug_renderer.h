@@ -6,6 +6,13 @@ namespace engine {
 
 class PhysicsWorld;
 
+/// How the debug view draws bodies.
+enum class DebugDrawMode {
+    Wireframe, ///< Outlines only. Everything is visible through everything else.
+    Solid,     ///< Filled. Reads as shapes, but occludes what is behind.
+    Both,      ///< Filled with the outline over it. Usually the most legible.
+};
+
 /// Draws the physics world as wireframes, from a fixed camera.
 ///
 /// @remarks
@@ -39,6 +46,26 @@ public:
 #endif
     }
 
+    /// How bodies are drawn. Independent of whether the view is enabled.
+    void setDrawMode(DebugDrawMode mode) { drawMode_ = mode; }
+    DebugDrawMode drawMode() const { return drawMode_; }
+
+    /// Advances to the next draw mode, wrapping around.
+    ///
+    /// @remarks
+    /// A closed loop with no dead end, because one key cycles all three at
+    /// runtime.
+    void cycleDrawMode();
+
+    /// Whether the solver overlay is drawn on top of the interpolated shapes.
+    ///
+    /// @remarks
+    /// Off by default. It shows what our own record of the world cannot -
+    /// actual contact points and normals, straight from Box3D - at the cost of
+    /// not being interpolated. Independent of @ref setDrawMode.
+    void setSolverOverlayEnabled(bool enabled) { solverOverlay_ = enabled; }
+    bool isSolverOverlayEnabled() const { return solverOverlay_; }
+
     /// Points the camera somewhere other than the default.
     void setCamera(const platform::Camera& camera) { camera_ = camera; }
     const platform::Camera& camera() const { return camera_; }
@@ -52,6 +79,8 @@ public:
 
 private:
     bool enabled_ = defaultEnabled();
+    bool solverOverlay_ = false;
+    DebugDrawMode drawMode_ = DebugDrawMode::Wireframe;
 
     // Far enough back to see a body dropped from a few metres, angled so depth
     // reads. Deliberately fixed: a controllable camera is its own piece of work.

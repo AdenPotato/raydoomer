@@ -17,6 +17,13 @@ enum class Key {
     Jump,
     Fire,
     Interact,
+
+    // Development controls. Kept alongside game actions so there is one input
+    // path rather than two, but deliberately grouped: these are not things the
+    // player does.
+    DebugView,       ///< Toggle the debug view entirely.
+    DebugCycleMode,  ///< Cycle wireframe / solid / both.
+    DebugOverlay,    ///< Toggle the solver overlay.
 };
 
 /// Relative mouse movement since the previous poll, in pixels.

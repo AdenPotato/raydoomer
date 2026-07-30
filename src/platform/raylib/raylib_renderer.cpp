@@ -50,4 +50,26 @@ void RaylibRenderer::drawWireSphere(Point3 center, float radius, Color color) {
     DrawSphereWires(toRaylib(center), radius, kSphereRings, kSphereSlices, toRaylib(color));
 }
 
+void RaylibRenderer::drawSolidBox(Point3 center, Vec3 halfExtents, Color color) {
+    DrawCube(toRaylib(center), halfExtents.x * 2.0f, halfExtents.y * 2.0f,
+             halfExtents.z * 2.0f, toRaylib(color));
+}
+
+void RaylibRenderer::drawSolidSphere(Point3 center, float radius, Color color) {
+    DrawSphere(toRaylib(center), radius, toRaylib(color));
+}
+
+void RaylibRenderer::drawLine(Point3 from, Point3 to, Color color) {
+    DrawLine3D(toRaylib(from), toRaylib(to), toRaylib(color));
+}
+
+void RaylibRenderer::drawPoint(Point3 position, float size, Color color) {
+    // raylib has no 3D point primitive, so a small sphere stands in. Clamped
+    // because Box3D asks for sizes in screen pixels for some markers, which
+    // would be enormous interpreted as metres.
+    constexpr float kMaxWorldSize = 0.15f;
+    const float radius = size > kMaxWorldSize ? kMaxWorldSize : size;
+    DrawSphere(toRaylib(position), radius, toRaylib(color));
+}
+
 } // namespace platform
