@@ -2,7 +2,7 @@
 
 The Windsurf (Cascade) instruction layer. It is a thin set of pointers into the shared [`docs/`](../docs) tree - the canonical, editor-neutral framework. Nothing here duplicates `docs/`; these files only tell Cascade *how* to work and route it to the right protocol.
 
-For how this layer relates to the other editor layer(s), see the **Editor support** section of the root [README.md](../README.md).
+For how this layer relates to the other editor layer(s), see the **Editor support** section of [README_AI.md](../README_AI.md).
 
 ## What's here
 
