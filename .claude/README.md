@@ -4,7 +4,7 @@ The Claude Code instruction layer. Like the Windsurf layer, it is a thin set of 
 
 The always-on entry point, [`CLAUDE.md`](../CLAUDE.md), lives at the repo root (Claude Code auto-loads it every session), not inside this directory.
 
-For how this layer corresponds to the Windsurf layer (`.windsurf/`), see the **Editor support** section of the root [README.md](../README.md).
+For how this layer corresponds to the Windsurf layer (`.windsurf/`), see the **Editor support** section of [README_AI.md](../README_AI.md).
 
 ## What's here
 

@@ -134,7 +134,8 @@ Adapt the source-tree rows to your repo layout. The doc rows below are the frame
 | .windsurf/rules/                      | Editor rules: always-on core + per-surface role rules (model_decision).                              | Update when a behavior rule or role surface changes.           |
 | .windsurf/workflows/                  | Slash-invoked session ceremonies (session-start, session-end, promote).                              | Update when a session-ceremony workflow changes.               |
 | .windsurf/skills/ | Scaffold skills (new-*, data-change, engine-api-change); one SKILL.md per folder.                                                                 | Update when a scaffold skill changes. |
-| README.md                             | The project brand; what this project is.                                                             | Update when project scope changes.                             |
+| README.md | The game: what it is, how to build it, what works today.                                                                                               | Update when scope or build steps change. |
+| README_AI.md | The agent operating framework: protocols, agents, skills.                                                                                          | Update when the framework layout changes. |
 | docs/README.md                        | Index/map of the docs tree (folders + per-file); navigation entry point.                             | Update when a doc or folder is added, moved, or removed.       |
 | docs/protocol/session_protocol.md     | This file. Session rules and conventions.                                                            | Update when the workflow changes.                              |
 | docs/protocol/core_protocol.md        | Shared dev core: TDD loop, branching, folder structure, naming, code quality, commits, docstrings.   | Update when a cross-cutting convention changes.                |

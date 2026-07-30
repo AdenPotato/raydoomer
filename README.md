@@ -1,62 +1,123 @@
-# Coding Agent Operating Framework
+# doomer
 
-A reusable, project-agnostic operating framework for working with an AI coding agent in a codebase. It is a set of version-controlled rules, protocols, skills, and role agents that give the agent a consistent, test-first way of working on any project - drop it into a repo, fill in the project-specific blanks, and start running sessions.
+A desktop first-person shooter with a Diablo-like loot loop, written in C++23.
 
-It supports **Claude Code** and **Windsurf (Cascade)** out of the box: the canonical content lives in one shared [`docs/`](docs) tree, and each editor gets a thin, native instruction layer that points into it - so the two never fork.
+Fast movement and shooting in the Doom tradition - 3D level geometry, 2D billboard actors - with randomised items, affixes and rarity tiers layered on top.
 
-The framework is deliberately stack-agnostic: it encodes *how* to work (session discipline, TDD, branching, an API contract seam, locked decisions) without assuming *what* you build it with.
+**Status: early.** The engine foundations are built and tested; the game is not yet playable. See [What works today](#what-works-today).
 
-## Purpose
+---
 
-Working with an AI agent across many sessions tends to drift - conventions get re-litigated, decisions get forgotten, quality bars slip. This repo fixes that by writing the working agreement down where the agent reads it every session:
+## Stack
 
-- A predictable **session lifecycle** (start -> work -> end) with explicit checklists.
-- **Test-first development** as a hard rule, per layer.
-- A **protected-branch workflow** so shared history is never rewritten.
-- A **locked-decisions registry** so settled choices are not re-opened by accident.
-- Per-surface **role agents** and **scaffolding skills** so a unit of work is added the same way each time.
+| | |
+|---|---|
+| Language | C++23 |
+| Windowing, input, audio, rendering | [raylib](https://www.raylib.com/) |
+| Physics | [Box3D](https://github.com/erincatto/box3d) |
+| Data and saves | [nlohmann/json](https://github.com/nlohmann/json) |
+| Tests | GoogleTest + GoogleMock |
+| Build | CMake + FetchContent |
+| Target | Windows, cross-compiled with MinGW-w64 |
 
-## What's inside
+Every dependency is fetched by CMake. There is nothing to install by hand except the toolchain.
 
-| Path                              | What it holds                                                                                                                                              |
-|-----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [docs/](docs)                     | The canonical, editor-neutral framework - protocols, reference, design specs, changelog. The single source both editors read.                              |
-| [CLAUDE.md](CLAUDE.md)            | **Claude Code:** auto-loaded every session - behavior rules, response style, git-safety guarantees, TDD rule.                                              |
-| [.claude/skills/](.claude/skills) | **Claude Code:** ordered, test-first checklists invoked with `/skill-name`; one `<name>/SKILL.md` folder each.                                             |
-| [.claude/agents/](.claude/agents) | **Claude Code:** role subagents - `simulation`, `presentation`, `content` - each owning one surface.                                                       |
-| [.windsurf/](.windsurf)           | **Windsurf (Cascade):** the native twin - rules, workflows, and skills - all pointing at the same `docs/`. See [.windsurf/README.md](.windsurf/README.md). |
+---
 
-Full documentation map: [docs/README.md](docs/README.md).
+## Building
 
-## Editor support
+### Prerequisites
 
-Both editors drive the *same* framework; only the thin instruction layer differs. The Windsurf layer mirrors the Claude one onto Windsurf's native primitives:
+```bash
+# Arch
+sudo pacman -S --needed mingw-w64-gcc cmake ninja
 
-| Concept                | Claude Code       | Windsurf (Cascade)                                                 |
-|------------------------|-------------------|--------------------------------------------------------------------|
-| Always-on behavior     | `CLAUDE.md`       | `.windsurf/rules/core.md` (`always_on`)                            |
-| Per-surface role rules | `.claude/agents/` | `.windsurf/rules/{role}.md` (`model_decision`)                     |
-| Session ceremonies     | `.claude/skills/<name>/SKILL.md` | `.windsurf/workflows/` (manual `/slash`)            |
-| Scaffolding procedures | `.claude/skills/<name>/SKILL.md` | `.windsurf/skills/<name>/SKILL.md` (auto / `@name`) |
-| Shared docs            | `docs/`           | `docs/` (same files)                                               |
+# Debian / Ubuntu
+sudo apt install mingw-w64 cmake ninja-build
+```
 
-Each layer has its own README with the editor-specific detail ([.claude/README.md](.claude/README.md), [.windsurf/README.md](.windsurf/README.md)); the reasons behind the Windsurf workflow-vs-skill split live in the latter. Using only one editor? Delete the other layer - `docs/` stands on its own.
+You also need a host compiler supporting C++23 for the test build (GCC 14 or newer).
 
-## Using it in a project
+### Three presets
 
-For step-by-step setup with each editor (and how to share the framework across repos), see [DEVELOPMENT.md](DEVELOPMENT.md).
+| Preset | What it builds | When |
+|---|---|---|
+| `linux-test` | The test suite, headless | Every change |
+| `windows-debug` | `doomer.exe` with asserts and the debug view | Day-to-day |
+| `windows-release` | `doomer.exe`, shipping configuration | Releases |
 
-1. Copy this repo's contents into your project (or use it as a template), keeping the editor layer(s) you use.
-2. Fill in the placeholders - `<project-name>` in [CLAUDE.md](CLAUDE.md), the attribution trailer, and the `<...>` slots in the template files ([locked_decisions.md](docs/reference/locked_decisions.md), [glossary.md](docs/reference/glossary.md), [style_guide.md](docs/design/style_guide.md), [integrations.md](docs/reference/integrations.md), [qa_protocol.md](docs/protocol/qa_protocol.md)).
-3. Record your actual source-tree layout in [core_protocol.md - Folder Structure](docs/protocol/core_protocol.md#folder-structure) and your stack choices in [locked_decisions.md](docs/reference/locked_decisions.md).
-4. (Windsurf) Once your source paths are fixed, consider switching the role rules from `model_decision` to `glob` so they auto-activate on the matching files - see [.windsurf/README.md](.windsurf/README.md).
-5. Start a session (`/session-start`) and go.
+```bash
+# Run the tests
+cmake --preset linux-test
+cmake --build --preset linux-test
+ctest --preset linux-test
 
-## Core rules at a glance
+# Build the game
+cmake --preset windows-debug
+cmake --build --preset windows-debug
+```
 
-- **Test-first.** A failing test that captures the behavior exists and is shown failing before any implementation.
-- **`main` is protected.** Work branches off `dev` as `feature/<issue>-<slug>` or `bugfix/<issue>-<slug>` (the GitHub issue number); `dev -> main` is a separate, maintainer-only promotion.
-- **Locked decisions are canon.** Work that contradicts one halts until the decision is unlocked, changed, documented, and re-locked.
-- **Never rewrite shared history.** The agent only fast-forward pushes; force-push and history rewrites need explicit approval.
+The test build **never fetches raylib**. That is deliberate: a test that tries to open a window fails to configure rather than passing locally and breaking in CI.
 
-The full working agreement is in [CLAUDE.md](CLAUDE.md) (Claude Code) and [.windsurf/rules/core.md](.windsurf/rules/core.md) (Windsurf).
+### Running it from WSL
+
+```bash
+cp build/windows-debug/src/doomer.exe /mnt/c/Users/<you>/doomer/
+/mnt/c/Windows/System32/cmd.exe /c "cd /d C:\Users\<you>\doomer && doomer.exe"
+```
+
+---
+
+## Debug controls
+
+| Key | Does |
+|---|---|
+| F1 | Toggle the debug view |
+| F2 | Cycle wireframe / solid / both |
+| F3 | Toggle the Box3D solver overlay - real contact points and normals |
+
+The debug view is on in a debug build and off in a release build.
+
+---
+
+## What works today
+
+Being specific, because "early" covers a lot of ground:
+
+- **Fixed-step frame loop** at 60 Hz, with interpolated presentation and a catch-up cap
+- **Platform seam** - window, input, audio, filesystem and clock behind interfaces, all mockable
+- **Physics** - Box3D wrapped behind opaque generational handles, stepped once per tick, deterministic
+- **Event dispatch** - immediate, with static registration, deferred removal and a reentrancy guard
+- **Data model and saves** - versioned JSON, seeded PCG32 so a loaded run replays identically
+- **Debug renderer** - physics bodies as wireframes, plus the solver's own contact view
+
+**Not yet:** a player you can move, weapons, enemies, loot, levels, textures, lighting, or a HUD. The window currently shows falling spheres landing on a floor.
+
+Planned work is tracked in [issues](https://github.com/AdenPotato/raydoomer/issues), grouped under epics.
+
+---
+
+## Assets and licensing
+
+The game loads Doom's **WAD format**, not Doom's content.
+
+`resources/` holds commercial id Software data used for local prototyping only. It is gitignored, has never been committed, and must never ship. [FreeDoom](https://freedoom.github.io/) is the distribution asset set - the loader targets the format, so swapping between them needs no code change.
+
+Verifying that swap gates any release.
+
+---
+
+## Documentation
+
+| | |
+|---|---|
+| [Runtime architecture](docs/design/runtime_architecture.md) | How the game is put together, and why |
+| [Locked decisions](docs/reference/locked_decisions.md) | Settled choices and the open questions |
+| [Protocols](docs/protocol/) | Engine, gameplay, content, presentation, testing |
+| [Glossary](docs/reference/glossary.md) | Shared vocabulary |
+
+## Development process
+
+This repository carries a version-controlled operating framework for working with an AI coding agent - session protocols, role agents, scaffolding skills, and a hard test-first rule. It is documented in **[README_AI.md](README_AI.md)** and [DEVELOPMENT.md](DEVELOPMENT.md).
+
+The short version: all new behaviour is test-first, `main` is protected, work branches off `dev`, and every PR passes three blocking CI gates.

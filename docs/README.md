@@ -1,6 +1,6 @@
 # docs
 
-Index of the project documentation. Repo overview is the root [README.md](../README.md); how to drive the framework with Claude Code or Windsurf is [DEVELOPMENT.md](../DEVELOPMENT.md). A consuming project keeps its own app run/build setup in its own README.
+Index of the project documentation. The project overview is the root [README.md](../README.md); the agent operating framework is [README_AI.md](../README_AI.md), and how to drive it is [DEVELOPMENT.md](../DEVELOPMENT.md).
 
 This page is the **navigation map** (what each doc/folder is). Per-file **update rules** are the [File Inventory](protocol/session_protocol.md#file-inventory) in session_protocol.md - the single source for *when* to touch each doc.
 

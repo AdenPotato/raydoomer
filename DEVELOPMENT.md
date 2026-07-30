@@ -115,4 +115,4 @@ What does **not** work: pointing links at GitHub raw URLs (the editor will not a
 
 ## 5. Customize for your project
 
-Once the framework is in place, fill in the blanks: the placeholders in [CLAUDE.md](CLAUDE.md) and the template files, your stack in [locked_decisions.md](docs/reference/locked_decisions.md), and your real source layout in [core_protocol.md - Folder Structure](docs/protocol/core_protocol.md#folder-structure). The full checklist is the **Using it in a project** section of the [README.md](README.md).
+Once the framework is in place, fill in the blanks: the placeholders in [CLAUDE.md](CLAUDE.md) and the template files, your stack in [locked_decisions.md](docs/reference/locked_decisions.md), and your real source layout in [core_protocol.md - Folder Structure](docs/protocol/core_protocol.md#folder-structure). The full checklist is the **Using it in a project** section of [README_AI.md](README_AI.md).
