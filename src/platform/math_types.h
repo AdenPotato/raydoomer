@@ -28,6 +28,52 @@ struct Point3 {
     friend bool operator==(const Point3&, const Point3&) = default;
 };
 
+/// A 2D vector: screen positions, sizes, and texture coordinates.
+struct Vec2 {
+    float x = 0.0f;
+    float y = 0.0f;
+
+    friend bool operator==(const Vec2&, const Vec2&) = default;
+};
+
+/// A rotation.
+///
+/// @remarks
+/// A quaternion rather than Euler angles: no gimbal lock, and it interpolates
+/// cleanly, which matters because presentation blends between simulation states.
+/// Identity is `{0, 0, 0, 1}`.
+struct Quat {
+    float x = 0.0f;
+    float y = 0.0f;
+    float z = 0.0f;
+    float w = 1.0f;
+
+    friend bool operator==(const Quat&, const Quat&) = default;
+};
+
+/// Where and how something sits in the world.
+struct Transform {
+    Point3 position;
+    Quat rotation;
+    Vec3 scale{ 1.0f, 1.0f, 1.0f };
+
+    friend bool operator==(const Transform&, const Transform&) = default;
+};
+
+/// A rectangle, used for texture atlas sub-regions and screen-space areas.
+///
+/// @remarks
+/// For UVs the units are **normalised** [0, 1]. For screen space they are
+/// pixels. Which one applies is stated by the function taking it.
+struct Rect {
+    float x = 0.0f;
+    float y = 0.0f;
+    float width = 0.0f;
+    float height = 0.0f;
+
+    friend bool operator==(const Rect&, const Rect&) = default;
+};
+
 /// 8-bit RGBA.
 struct Color {
     uint8_t r = 255;

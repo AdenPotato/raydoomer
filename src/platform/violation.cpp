@@ -1,9 +1,9 @@
-#include "engine/violation.h"
+#include "platform/violation.h"
 
 #include <cstdio>
 #include <cstdlib>
 
-namespace engine {
+namespace platform {
 
 ViolationReporter defaultViolationReporter() {
     return [](std::string_view message) {
@@ -18,4 +18,4 @@ ViolationReporter defaultViolationReporter() {
     };
 }
 
-} // namespace engine
+} // namespace platform

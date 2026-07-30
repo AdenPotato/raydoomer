@@ -3,7 +3,7 @@
 #include <functional>
 #include <string_view>
 
-namespace engine {
+namespace platform {
 
 /// Called when an engine invariant is violated.
 ///
@@ -19,4 +19,4 @@ using ViolationReporter = std::function<void(std::string_view message)>;
 /// The default reporter: loud in development, still reported in release.
 ViolationReporter defaultViolationReporter();
 
-} // namespace engine
+} // namespace platform

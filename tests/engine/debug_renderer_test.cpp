@@ -14,6 +14,7 @@
 #include "engine/debug_renderer.h"
 #include "engine/event_dispatch.h"
 #include "engine/physics.h"
+#include "support/mock_renderer.h"
 
 namespace {
 
@@ -23,25 +24,7 @@ using ::testing::NiceMock;
 
 constexpr float kTick = 1.0f / 60.0f;
 
-class MockRenderer : public platform::Renderer {
-public:
-    MOCK_METHOD(void, beginScene, (const platform::Camera& camera), (override));
-    MOCK_METHOD(void, endScene, (), (override));
-    MOCK_METHOD(void, drawWireBox,
-                (platform::Point3 center, platform::Vec3 halfExtents, platform::Color color),
-                (override));
-    MOCK_METHOD(void, drawWireSphere,
-                (platform::Point3 center, float radius, platform::Color color), (override));
-    MOCK_METHOD(void, drawSolidBox,
-                (platform::Point3 center, platform::Vec3 halfExtents, platform::Color color),
-                (override));
-    MOCK_METHOD(void, drawSolidSphere,
-                (platform::Point3 center, float radius, platform::Color color), (override));
-    MOCK_METHOD(void, drawLine,
-                (platform::Point3 from, platform::Point3 to, platform::Color color), (override));
-    MOCK_METHOD(void, drawPoint,
-                (platform::Point3 position, float size, platform::Color color), (override));
-};
+using support::MockRenderer;
 
 // Puts one sphere and one box in the world, so a mode test covers both
 // primitives at once.

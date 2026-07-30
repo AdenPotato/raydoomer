@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine/violation.h"
+#include "platform/violation.h"
 
 #include <cstdint>
 #include <functional>
@@ -10,6 +10,11 @@
 #include <vector>
 
 namespace engine {
+
+// Lives in platform/ so the renderer seam can use it too; aliased here so
+// callers still write engine::ViolationReporter.
+using platform::ViolationReporter;
+using platform::defaultViolationReporter;
 
 /// Identifies the system that owns a handler.
 ///
