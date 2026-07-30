@@ -47,7 +47,7 @@ Each layer has its own README with the editor-specific detail ([.claude/README.m
 For step-by-step setup with each editor (and how to share the framework across repos), see [DEVELOPMENT.md](DEVELOPMENT.md).
 
 1. Copy this repo's contents into your project (or use it as a template), keeping the editor layer(s) you use.
-2. Fill in the placeholders - `<project-name>` in [CLAUDE.md](CLAUDE.md), the attribution trailer, and the `<...>` slots in the template files ([locked_decisions.md](docs/reference/locked_decisions.md), [glossary.md](docs/reference/glossary.md), [style_guide.md](docs/design/style_guide.md), [integrations.md](docs/reference/integrations.md), [qa_protocol.md](docs/protocol/qa_protocol.md)).
+2. Fill in the placeholders - `<project-name>` in [CLAUDE.md](CLAUDE.md), the attribution trailer, and the `<...>` slots in the template files ([locked_decisions.md](docs/reference/locked_decisions.md), [glossary.md](docs/reference/glossary.md), [style_guide.md](docs/design/style_guide.md), [integrations.md](docs/reference/integrations.md)).
 3. Record your actual source-tree layout in [core_protocol.md - Folder Structure](docs/protocol/core_protocol.md#folder-structure) and your stack choices in [locked_decisions.md](docs/reference/locked_decisions.md).
 4. (Windsurf) Once your source paths are fixed, consider switching the role rules from `model_decision` to `glob` so they auto-activate on the matching files - see [.windsurf/README.md](.windsurf/README.md).
 5. Start a session (`/session-start`) and go.

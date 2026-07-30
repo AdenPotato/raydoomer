@@ -145,7 +145,7 @@ Adapt the source-tree rows to your repo layout. The doc rows below are the frame
 | docs/protocol/engine_protocol.md      | Engine code: game/engine boundary, resource lifetime, platform seam, determinism, frame budget.      | Update when an engine-layer convention changes.                |
 | docs/protocol/gameplay_protocol.md    | Gameplay code: tunables in data, feel requests, behavior vs balance, frame-rate independence.        | Update when a gameplay convention changes.                     |
 | docs/protocol/game_test_protocol.md   | Test-first for game code: per-layer tests, the four seams, golden images, the feel exception.        | Update when the game testing standard changes.                 |
-| docs/protocol/qa_protocol.md          | Manual QA workflow, per-PR checklist convention, environment matrix.                                 | Update when the QA workflow or matrix changes.                 |
+| docs/protocol/qa_protocol.md          | Playtesting: when required, feel-feedback loop, environment, sign-off.                                                   | Update when the playtest workflow changes. |
 | docs/reference/locked_decisions.md    | Current decisions, locked items, open questions, project status.                                     | Update every Tracked session end.                              |
 | docs/reference/glossary.md            | Shared vocabulary. Definitions only.                                                                 | Add when a new term is introduced or renamed.                  |
 | docs/reference/integrations.md        | External-service runbook - setup steps and env vars per service.                                     | Update when a new external service is added or changed.        |

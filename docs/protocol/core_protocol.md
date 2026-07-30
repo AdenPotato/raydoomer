@@ -170,10 +170,10 @@ Before opening a PR, all of the following must be completed.
 
 CI runs on GitHub Actions ([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)), on every pull request into `dev` or `main`.
 
-| Gate                     | What it proves                                                         | Local equivalent                        |
-|--------------------------|------------------------------------------------------------------------|-----------------------------------------|
-| Layer boundaries         | `game -> engine -> platform` is one way; no third-party header leaks   | `./scripts/check-layer-boundaries.sh`   |
-| Headless tests           | The suite passes with no window, no GPU, no Windows runner             | `ctest --preset linux-test`             |
+| Gate                     | What it proves                                                            | Local equivalent                        |
+|--------------------------|---------------------------------------------------------------------------|-----------------------------------------|
+| Layer boundaries         | `game -> engine -> platform` is one way; no third-party header leaks      | `./scripts/check-layer-boundaries.sh`   |
+| Headless tests           | The suite passes with no window, no GPU, no Windows runner                | `ctest --preset linux-test`             |
 | Windows cross-compile    | The game still builds for its target, and the artifact is a real PE      | `cmake --build --preset windows-release` |
 
 **Not yet gated, and deliberately named rather than left implicit:**

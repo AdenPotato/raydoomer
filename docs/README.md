@@ -22,7 +22,7 @@ This page is the **navigation map** (what each doc/folder is). Per-file **update
 | [engine_protocol.md](protocol/engine_protocol.md)           | Engine-code rules: the game/engine boundary, resource lifetime, platform seam, frame budget.  |
 | [gameplay_protocol.md](protocol/gameplay_protocol.md)       | Gameplay-code rules: tunables in data, feel requests, frame-rate independence.                |
 | [game_test_protocol.md](protocol/game_test_protocol.md)     | Test-first for game code: the seams, time control, golden images, the feel exception.         |
-| [qa_protocol.md](protocol/qa_protocol.md)                   | Manual QA workflow + environment matrix (template).                                           |
+| [qa_protocol.md](protocol/qa_protocol.md)                   | Playtesting: when it is required, how feel feedback is reported, environment.                 |
 
 ## reference/
 
