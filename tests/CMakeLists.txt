@@ -6,6 +6,7 @@ add_executable(engine_tests
   engine/physics_test.cpp
   engine/debug_renderer_test.cpp
   engine/billboard_test.cpp
+  engine/camera_test.cpp
   engine/renderer_seam_test.cpp
   engine/fixed_step_test.cpp
   engine/simulation_constants_test.cpp
@@ -13,6 +14,8 @@ add_executable(engine_tests
   engine/rng_test.cpp
   game/world_test.cpp
   game/save_test.cpp
+  game/player_controller_test.cpp
+  game/quake_movement_test.cpp
   platform/clock_test.cpp
   platform/file_system_test.cpp
   platform/seam_test.cpp

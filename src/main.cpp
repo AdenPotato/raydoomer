@@ -1,9 +1,12 @@
+#include "engine/camera.h"
 #include "engine/debug_renderer.h"
 #include "engine/event_dispatch.h"
 #include "engine/fixed_step.h"
 #include "engine/rng.h"
 #include "engine/simulation.h"
+#include "game/input_snapshot.h"
 #include "game/world.h"
+#include "platform/file_system.h"
 #include "platform/clock.h"
 #include "platform/raylib/raylib_audio_device.h"
 #include "platform/raylib/raylib_input.h"
@@ -58,6 +61,10 @@ int main() {
         audio.close();
     }
 
+    // Lock the pointer to the window for mouse look. Released automatically when
+    // the window closes.
+    window.setCursorCaptured(true);
+
     platform::RaylibInput input;
     platform::RaylibRenderer renderer;
     platform::SystemClock clock;
@@ -80,7 +87,17 @@ int main() {
     events.freeze();
 
     game::World world;
+
+    // Tunables from data, never literals. A missing or malformed file falls back
+    // to defaults rather than producing an immobile player.
+    platform::NativeFileSystem fileSystem;
+    if (const auto file = fileSystem.read("data/player.json")) {
+        world.setMovementTunables(game::movementTunablesFromJson(
+            std::string_view(reinterpret_cast<const char*>(file->data()), file->size())));
+    }
+
     buildDemoScene(world.physics());
+    world.spawnPlayer(engine::Point3{ 0.0, 2.0, -6.0 });
 
     // On in a development build, off in a release build. Toggled with Interact.
     engine::DebugRenderer debugRenderer;
@@ -88,6 +105,15 @@ int main() {
     // Edge detection for the debug controls, tracked here rather than by adding
     // an isKeyPressed to the input seam: three callers in one place do not
     // justify growing the interface.
+    // Aim accumulates per FRAME from raw mouse delta, then rides into whichever
+    // ticks run that frame. The simulation is locked at 60Hz and the frame rate
+    // is not; if aim were simulation state, looking would feel capped at 60
+    // regardless of how fast the game renders
+    // (locked_decisions.md - aim sampling).
+    float aimYaw = 0.0f;
+    float aimPitch = 0.0f;
+    constexpr float kPitchLimit = 1.5f; // just under 90 degrees, so the view cannot flip
+
     bool viewWasDown = false;
     bool modeWasDown = false;
     bool overlayWasDown = false;
@@ -123,9 +149,35 @@ int main() {
         }
         overlayWasDown = overlayIsDown;
 
+        const platform::MouseDelta mouse = input.mouseDelta();
+        aimYaw -= mouse.dx * world.movementTunables().mouseSensitivity;
+        aimPitch -= mouse.dy * world.movementTunables().mouseSensitivity;
+        aimPitch = aimPitch > kPitchLimit ? kPitchLimit
+                                          : (aimPitch < -kPitchLimit ? -kPitchLimit : aimPitch);
+
+        game::InputSnapshot inputSnapshot;
+        inputSnapshot.moveForward = input.isKeyDown(platform::Key::Forward);
+        inputSnapshot.moveBack = input.isKeyDown(platform::Key::Back);
+        inputSnapshot.moveLeft = input.isKeyDown(platform::Key::Left);
+        inputSnapshot.moveRight = input.isKeyDown(platform::Key::Right);
+        inputSnapshot.jump = input.isKeyDown(platform::Key::Jump);
+        inputSnapshot.fire = input.isKeyDown(platform::Key::Fire);
+        inputSnapshot.yawRadians = aimYaw;
+        inputSnapshot.pitchRadians = aimPitch;
+
         const engine::StepResult step = accumulator.advance(frameDelta);
         for (int i = 0; i < step.ticks; ++i) {
-            world.tick(static_cast<float>(engine::SIM_TICK_SECONDS), rng, events);
+            world.tick(static_cast<float>(engine::SIM_TICK_SECONDS), inputSnapshot, rng, events);
+        }
+
+        // The camera follows the player, from the interpolated position so it
+        // moves smoothly between ticks rather than at the simulation rate.
+        // Presentation reads simulation state; it never writes it.
+        if (const auto body =
+                world.physics().interpolatedPosition(world.playerBody(), step.alpha)) {
+            debugRenderer.setCamera(engine::firstPersonCamera(
+                engine::eyePosition(*body, world.movementTunables().eyeHeight), aimYaw,
+                aimPitch, world.movementTunables().fieldOfView));
         }
 
         window.beginFrame();

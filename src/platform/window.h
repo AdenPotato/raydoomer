@@ -44,6 +44,18 @@ public:
 
     /// @returns The current drawable size in pixels.
     virtual Size size() const = 0;
+
+    /// Captures the cursor: hidden, locked to the window, delivering raw
+    /// relative movement.
+    ///
+    /// @note Required for mouse look. Without it the pointer wanders off the
+    ///       window and stops at the screen edge, so turning simply halts.
+    ///       Releasing it is equally required - a game that traps the cursor
+    ///       with no way out is hostile.
+    virtual void setCursorCaptured(bool captured) = 0;
+
+    /// @returns Whether the cursor is currently captured.
+    virtual bool isCursorCaptured() const = 0;
 };
 
 } // namespace platform

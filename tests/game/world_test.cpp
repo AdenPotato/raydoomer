@@ -39,7 +39,7 @@ TEST(World, CountsEveryTick) {
     Context context;
 
     for (int i = 0; i < 10; ++i) {
-        world.tick(kTick, context.rng, context.events);
+        world.tick(kTick, game::InputSnapshot{}, context.rng, context.events);
     }
 
     EXPECT_EQ(world.tickCount(), 10);
@@ -50,7 +50,7 @@ TEST(World, AccumulatesSimulatedTimeNotWallClockTime) {
     Context context;
 
     for (int i = 0; i < 60; ++i) {
-        world.tick(kTick, context.rng, context.events);
+        world.tick(kTick, game::InputSnapshot{}, context.rng, context.events);
     }
 
     EXPECT_NEAR(world.elapsedSeconds(), 1.0f, 1e-4f);
@@ -61,7 +61,7 @@ TEST(World, StepsWithNoWindowClockOrDevice) {
     // must not have - and it would stop building in the test configuration.
     game::World world;
     Context context;
-    world.tick(kTick, context.rng, context.events);
+    world.tick(kTick, game::InputSnapshot{}, context.rng, context.events);
     SUCCEED();
 }
 
@@ -125,7 +125,7 @@ TEST(World, ASaveIsDeliberatelyLossyAboutLevelScopedState) {
     game::World world;
     Context context;
     for (int i = 0; i < 30; ++i) {
-        world.tick(kTick, context.rng, context.events);
+        world.tick(kTick, game::InputSnapshot{}, context.rng, context.events);
     }
     ASSERT_EQ(world.tickCount(), 30);
 
@@ -156,7 +156,7 @@ TEST(World, StepsPhysicsExactlyOncePerTick) {
     const auto viaStandalone = standalone.createBody(def);
 
     for (int i = 0; i < 60; ++i) {
-        world.tick(kTick, context.rng, context.events);
+        world.tick(kTick, game::InputSnapshot{}, context.rng, context.events);
         standalone.step(kTick, idle);
     }
 
@@ -174,8 +174,8 @@ TEST(World, TickingIsDeterministicForAGivenSeed) {
     Context secondContext;
 
     for (int i = 0; i < 100; ++i) {
-        first.tick(kTick, firstContext.rng, firstContext.events);
-        second.tick(kTick, secondContext.rng, secondContext.events);
+        first.tick(kTick, game::InputSnapshot{}, firstContext.rng, firstContext.events);
+        second.tick(kTick, game::InputSnapshot{}, secondContext.rng, secondContext.events);
     }
 
     EXPECT_EQ(first.tickCount(), second.tickCount());

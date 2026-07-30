@@ -25,6 +25,8 @@ public:
     MOCK_METHOD(void, beginFrame, (), (override));
     MOCK_METHOD(void, endFrame, (), (override));
     MOCK_METHOD(platform::Size, size, (), (const, override));
+    MOCK_METHOD(void, setCursorCaptured, (bool captured), (override));
+    MOCK_METHOD(bool, isCursorCaptured, (), (const, override));
 };
 
 class MockInput : public platform::Input {
@@ -56,6 +58,20 @@ TEST(PlatformSeam, WindowLifecycleIsAnExercisedCycle) {
     ASSERT_TRUE(window.open(1280, 720, "doomer"));
     window.beginFrame();
     window.endFrame();
+    window.close();
+}
+
+TEST(PlatformSeam, TheCursorIsCapturedForMouseLookAndReleasedOnClose) {
+    // Mouse look needs the pointer locked to the window; without it, turning
+    // stops the moment the pointer reaches a screen edge. Releasing on close is
+    // equally required - a game that strands the cursor is hostile.
+    MockWindow window;
+
+    ::testing::InSequence sequence;
+    EXPECT_CALL(window, setCursorCaptured(true));
+    EXPECT_CALL(window, close());
+
+    window.setCursorCaptured(true);
     window.close();
 }
 

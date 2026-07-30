@@ -20,9 +20,12 @@ public:
     void beginFrame() override;
     void endFrame() override;
     Size size() const override;
+    void setCursorCaptured(bool captured) override;
+    bool isCursorCaptured() const override;
 
 private:
     bool isOpen_ = false;
+    bool cursorCaptured_ = false;
 };
 
 } // namespace platform

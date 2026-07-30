@@ -1,0 +1,17 @@
+{
+  "_comment": "Quake 3 defaults, converted from Quake units (1 unit ~ 0.0254 m).",
+
+  "maxSpeed": 8.13,
+  "groundAccelerate": 10.0,
+  "airAccelerate": 1.0,
+  "airWishSpeedCap": 0.76,
+  "friction": 6.0,
+  "stopSpeed": 2.54,
+  "jumpImpulse": 6.5,
+
+  "characterRadius": 0.5,
+  "groundedTolerance": 0.15,
+  "eyeHeight": 0.4,
+  "fieldOfView": 90.0,
+  "mouseSensitivity": 0.003
+}

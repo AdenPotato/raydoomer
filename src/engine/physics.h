@@ -70,6 +70,21 @@ struct BodyDef {
     /// Mass per unit volume. Ignored for static bodies.
     float density = 1.0f;
 
+    /// Coulomb friction coefficient of the body's surface, in [0, 1].
+    ///
+    /// @note **A character controller wants 0.** It implements its own friction
+    ///       as a tunable; leaving surface friction on means two friction models
+    ///       fight each other, the player never reaches its configured max
+    ///       speed, and neither model can be tuned meaningfully.
+    ///       Negative leaves the library default in place.
+    float friction = -1.0f;
+
+    /// Prevents the body rotating.
+    ///
+    /// @note Essential for a character: without it the player's shape tips over
+    ///       the first time it touches anything, and the camera goes with it.
+    bool lockRotation = false;
+
     /// Whether this body wants contacts involving it to be published.
     ///
     /// @note **Pairwise, not per-body.** A contact is reported if *either* body
@@ -139,6 +154,33 @@ public:
     ///       visibly stutters whenever the tick and the frame disagree, which at
     ///       144fps against a 60Hz simulation is most frames.
     std::optional<Point3> interpolatedPosition(BodyHandle handle, double alpha) const;
+
+    /// @returns The body's linear velocity in metres per second, or `nullopt`
+    ///          if the handle is stale.
+    std::optional<Vec3> linearVelocity(BodyHandle handle) const;
+
+    /// Sets linear velocity directly.
+    ///
+    /// @note Direct velocity rather than force is the right tool for a character
+    ///       controller: a shooter wants crisp response, and driving a character
+    ///       with forces through a solver gives the mushy, mass-dependent feel
+    ///       that forces are good at and this is not.
+    void setLinearVelocity(BodyHandle handle, Vec3 velocity);
+
+    /// What a ray hit.
+    struct RayHit {
+        BodyHandle body;
+        Point3 point;
+        Vec3 normal;
+        float fraction = 0.0f; ///< Along the ray, in [0, 1].
+    };
+
+    /// Casts a ray and returns the closest hit.
+    ///
+    /// @param origin      Where the ray starts.
+    /// @param translation Direction **and length**; not normalised.
+    /// @returns The closest hit, or `nullopt` if nothing was struck.
+    std::optional<RayHit> raycastClosest(Point3 origin, Vec3 translation) const;
 
     /// A read-only view of one body, for inspection.
     struct BodyView {

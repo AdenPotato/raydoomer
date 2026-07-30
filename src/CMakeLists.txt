@@ -22,6 +22,7 @@ target_include_directories(platform_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # configurations so the headless tests exercise the real thing.
 add_library(engine STATIC
   engine/billboard.cpp
+  engine/camera.cpp
   engine/debug_renderer.cpp
   engine/event_dispatch.cpp
   engine/rng.cpp
@@ -35,6 +36,8 @@ target_link_libraries(engine PUBLIC platform_core PRIVATE box3d::box3d)
 # Game: the rules. Depends on engine, never on platform or a third-party
 # library - the layer-boundary gate enforces that.
 add_library(game STATIC
+  game/player_controller.cpp
+  game/quake_movement.cpp
   game/save.cpp
   game/world.cpp
 )

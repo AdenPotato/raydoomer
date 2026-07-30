@@ -35,18 +35,21 @@ The registry of decisions that are settled and should not be re-litigated casual
 
 Full specification: [runtime_architecture.md](../design/runtime_architecture.md).
 
-| Item              | Locked Value / State                                                                                       | Lock Type |
-|-------------------|------------------------------------------------------------------------------------------------------------|-----------|
-| Layer boundary    | `game -> engine -> platform`, one way, enforced by directory structure                                     | Hard      |
-| Entity model      | Object-oriented hierarchy; context injected via `update(dt, Rng&, EventQueue&)`; entities never present    | Hard      |
-| System ordering   | Explicit ordered calls in `World::tick`; ordering never lives inside an entity                             | Hard      |
-| Event dispatch    | Immediate, with three mandatory guardrails: static registration, mark-dead/sweep, reentrancy depth guard   | Hard      |
-| Simulation rate   | Fixed 60 Hz (`SIM_TICK_HZ`); presentation uncapped and interpolated                                        | Hard      |
-| Frame budget      | `FRAME_BUDGET_MS` 6.94; `MAX_CATCHUP_TICKS` 5. A change that blows one halts and is flagged                | Hard      |
-| Save model        | Checkpoint at level boundaries; versioned; no mid-level world state                                        | Hard      |
-| Level format      | Brush lists in JSON; brushes become static Box3D colliders at load                                         | Hard      |
-| Physics stepping  | Box3D stepped once per fixed tick at `SIM_TICK_SECONDS`, single-threaded (worker count 1)                  | Hard      |
-| Transform owner   | Physics-authoritative: Box3D owns position and velocity; entities hold an opaque body handle               | Hard      |
+| Item             | Locked Value / State                                                                                              | Lock Type |
+|------------------|-------------------------------------------------------------------------------------------------------------------|-----------|
+| Layer boundary   | `game -> engine -> platform`, one way, enforced by directory structure                                            | Hard      |
+| Entity model     | Object-oriented hierarchy; context injected via `update(dt, Rng&, EventQueue&)`; entities never present           | Hard      |
+| System ordering  | Explicit ordered calls in `World::tick`; ordering never lives inside an entity                                    | Hard      |
+| Event dispatch   | Immediate, with three mandatory guardrails: static registration, mark-dead/sweep, reentrancy depth guard          | Hard      |
+| Simulation rate  | Fixed 60 Hz (`SIM_TICK_HZ`); presentation uncapped and interpolated                                               | Hard      |
+| Frame rate       | Uncapped. No vsync, no target FPS. Locking the simulation is what makes it safe to leave rendering unlocked       | Hard      |
+| Aim sampling     | Camera yaw and pitch are sampled **per frame** from raw mouse delta and passed **into** the tick as input         | Hard      |
+| Movement model   | Quake: acceleration projects velocity onto the wish direction. Strafe-jumping is an accepted emergent consequence | Hard      |
+| Frame budget     | `FRAME_BUDGET_MS` 6.94; `MAX_CATCHUP_TICKS` 5. A change that blows one halts and is flagged                       | Hard      |
+| Save model       | Checkpoint at level boundaries; versioned; no mid-level world state                                               | Hard      |
+| Level format     | Brush lists in JSON; brushes become static Box3D colliders at load                                                | Hard      |
+| Physics stepping | Box3D stepped once per fixed tick at `SIM_TICK_SECONDS`, single-threaded (worker count 1)                         | Hard      |
+| Transform owner  | Physics-authoritative: Box3D owns position and velocity; entities hold an opaque body handle                      | Hard      |
 
 ---
 

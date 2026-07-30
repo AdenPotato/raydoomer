@@ -111,6 +111,13 @@ BodyHandle PhysicsWorld::createBody(const BodyDef& def) {
     b3BodyDef bodyDef = b3DefaultBodyDef();
     bodyDef.type = (def.type == BodyType::Static) ? b3_staticBody : b3_dynamicBody;
     bodyDef.position = toBox3d(def.position);
+    if (def.lockRotation) {
+        // A character must not tip. Locking all three angular axes is what keeps
+        // the player upright when it brushes geometry.
+        bodyDef.motionLocks.angularX = true;
+        bodyDef.motionLocks.angularY = true;
+        bodyDef.motionLocks.angularZ = true;
+    }
 
     const b3BodyId body = b3CreateBody(impl_->world, &bodyDef);
 
@@ -122,6 +129,9 @@ BodyHandle PhysicsWorld::createBody(const BodyDef& def) {
     // simulation collides correctly and reports nothing, which is a genuinely
     // confusing failure: the ball lands, and no event ever fires.
     shapeDef.enableContactEvents = def.reportsContacts;
+    if (def.friction >= 0.0f) {
+        shapeDef.baseMaterial.friction = def.friction;
+    }
 
     if (const auto* sphere = std::get_if<SphereShape>(&def.shape)) {
         const b3Sphere geometry{ b3Vec3{ 0.0f, 0.0f, 0.0f }, sphere->radius };
@@ -211,6 +221,43 @@ void PhysicsWorld::step(float dt, EventDispatcher& events) {
         }
         events.publish(ContactBegan{ a, b });
     }
+}
+
+std::optional<Vec3> PhysicsWorld::linearVelocity(BodyHandle handle) const {
+    const Impl::Slot* slot = impl_->resolve(handle, "linearVelocity");
+    if (slot == nullptr) {
+        return std::nullopt;
+    }
+    const b3Vec3 v = b3Body_GetLinearVelocity(slot->body);
+    return Vec3{ v.x, v.y, v.z };
+}
+
+void PhysicsWorld::setLinearVelocity(BodyHandle handle, Vec3 velocity) {
+    const Impl::Slot* slot = impl_->resolve(handle, "setLinearVelocity");
+    if (slot == nullptr) {
+        return;
+    }
+    b3Body_SetLinearVelocity(slot->body, b3Vec3{ velocity.x, velocity.y, velocity.z });
+}
+
+std::optional<PhysicsWorld::RayHit> PhysicsWorld::raycastClosest(Point3 origin,
+                                                                 Vec3 translation) const {
+    const b3RayResult result =
+        b3World_CastRayClosest(impl_->world, toBox3d(origin),
+                               b3Vec3{ translation.x, translation.y, translation.z },
+                               b3DefaultQueryFilter());
+
+    // Box3D uses 1-based shape ids, so index1 == 0 means nothing was hit.
+    if (result.shapeId.index1 == 0) {
+        return std::nullopt;
+    }
+
+    return RayHit{
+        impl_->handleFor(b3Shape_GetBody(result.shapeId)),
+        fromBox3d(result.point),
+        Vec3{ result.normal.x, result.normal.y, result.normal.z },
+        result.fraction,
+    };
 }
 
 std::optional<Point3> PhysicsWorld::interpolatedPosition(BodyHandle handle, double alpha) const {

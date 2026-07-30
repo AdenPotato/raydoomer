@@ -1,6 +1,8 @@
 #pragma once
 
 #include "engine/physics.h"
+#include "game/input_snapshot.h"
+#include "game/player_controller.h"
 #include "game/inventory.h"
 #include "game/level_progress.h"
 #include "game/player_state.h"
@@ -53,7 +55,32 @@ public:
     ///       are called from here in an explicit, fixed order
     ///       (runtime_architecture.md). The signature is the locked contract
     ///       they plug into.
-    void tick(float dt, engine::Rng& rng, engine::EventDispatcher& events);
+    /// @param input What the player asked for, sampled this frame.
+    ///
+    /// @note Input is a **parameter**, not state the world reaches for. That
+    ///       makes the tick a pure function of state, input, dt and randomness,
+    ///       which is what makes a run reproducible and a test possible.
+    ///
+    ///       This extends the signature recorded in runtime_architecture.md,
+    ///       which predated there being any input to take. Deliberate.
+    void tick(float dt, const InputSnapshot& input, engine::Rng& rng,
+              engine::EventDispatcher& events);
+
+    /// Creates the player body and returns its handle.
+    /// @note Rotation-locked, so the player cannot tip over.
+    engine::BodyHandle spawnPlayer(engine::Point3 position);
+
+    /// Creates a static body directly. Test scaffolding until the level loader
+    /// exists; levels will supply geometry from data.
+    engine::BodyHandle createFloorForTest(const engine::BodyDef& def) {
+        return physics_.createBody(def);
+    }
+
+    /// @returns The player's body handle, or a default handle before spawn.
+    engine::BodyHandle playerBody() const { return playerBody_; }
+
+    void setMovementTunables(const MovementTunables& tunables) { movement_ = tunables; }
+    const MovementTunables& movementTunables() const { return movement_; }
 
     /// The physics world. Owned here so it is stepped exactly once per
     /// simulation tick, structurally rather than by convention: a caller cannot
@@ -95,6 +122,8 @@ public:
 
 private:
     engine::PhysicsWorld physics_;
+    engine::BodyHandle playerBody_;
+    MovementTunables movement_;
 
     PlayerState player_;
     Inventory inventory_;

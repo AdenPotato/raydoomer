@@ -28,6 +28,12 @@ void RaylibWindow::close() {
     if (!isOpen_) {
         return;
     }
+    // Release the cursor before the window goes: leaving it captured after the
+    // window is gone strands the pointer.
+    if (cursorCaptured_) {
+        EnableCursor();
+        cursorCaptured_ = false;
+    }
     CloseWindow();
     isOpen_ = false;
 }
@@ -47,6 +53,22 @@ void RaylibWindow::beginFrame() {
 
 void RaylibWindow::endFrame() {
     EndDrawing();
+}
+
+void RaylibWindow::setCursorCaptured(bool captured) {
+    if (!isOpen_ || captured == cursorCaptured_) {
+        return;
+    }
+    if (captured) {
+        DisableCursor(); // hides, locks to window, gives relative movement
+    } else {
+        EnableCursor();
+    }
+    cursorCaptured_ = captured;
+}
+
+bool RaylibWindow::isCursorCaptured() const {
+    return cursorCaptured_;
 }
 
 Size RaylibWindow::size() const {
