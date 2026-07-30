@@ -87,23 +87,23 @@ jobs:
           restore-keys: deps-win-${{ runner.os }}-
 
       - name: Configure
-        run: cmake --preset windows-game
+        run: cmake --preset windows-release
 
       - name: Build
-        run: cmake --build --preset windows-game
+        run: cmake --build --preset windows-release
 
       # Proves the artifact is genuinely a Windows binary rather than a silently
       # native one. Running it would need a Windows runner; the build succeeding
       # is the gate, and the exe is uploaded for manual verification.
       - name: Verify the artifact is a Windows PE binary
         run: |
-          file build/windows-game/src/doomer.exe
-          file build/windows-game/src/doomer.exe | grep -q 'PE32+ executable' \
+          file build/windows-release/src/doomer.exe
+          file build/windows-release/src/doomer.exe | grep -q 'PE32+ executable' \
             || { echo "not a Windows PE binary"; exit 1; }
 
       - name: Upload doomer.exe
         uses: actions/upload-artifact@v4
         with:
           name: doomer-windows
-          path: build/windows-game/src/doomer.exe
+          path: build/windows-release/src/doomer.exe
           if-no-files-found: error

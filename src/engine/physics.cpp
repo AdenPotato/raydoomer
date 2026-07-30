@@ -41,6 +41,14 @@ struct PhysicsWorld::Impl {
         b3BodyId body{};
         uint32_t generation = 0;
         bool alive = false;
+
+        // Kept so the debug view can describe a body without reaching into Box3D.
+        Shape shape{};
+        BodyType type = BodyType::Dynamic;
+
+        // The position before the most recent step. Presentation blends between
+        // this and the current one; without it, drawing stutters.
+        Point3 previousPosition{};
     };
 
     b3WorldId world{};
@@ -138,6 +146,9 @@ BodyHandle PhysicsWorld::createBody(const BodyDef& def) {
     Impl::Slot& slot = impl_->slots[index];
     slot.body = body;
     slot.alive = true;
+    slot.shape = def.shape;
+    slot.type = def.type;
+    slot.previousPosition = def.position;
     // Generations start at 1 so a default-constructed handle is never valid.
     slot.generation += 1;
 
@@ -179,6 +190,13 @@ std::optional<Point3> PhysicsWorld::position(BodyHandle handle) const {
 }
 
 void PhysicsWorld::step(float dt, EventDispatcher& events) {
+    // Snapshot before advancing, so presentation has two states to blend.
+    for (Impl::Slot& slot : impl_->slots) {
+        if (slot.alive) {
+            slot.previousPosition = fromBox3d(b3Body_GetPosition(slot.body));
+        }
+    }
+
     b3World_Step(impl_->world, dt, kSubStepCount);
 
     // Contacts are read out and republished as engine events. Gameplay learns
@@ -193,6 +211,184 @@ void PhysicsWorld::step(float dt, EventDispatcher& events) {
         }
         events.publish(ContactBegan{ a, b });
     }
+}
+
+std::optional<Point3> PhysicsWorld::interpolatedPosition(BodyHandle handle, double alpha) const {
+    const Impl::Slot* slot = impl_->resolve(handle, "interpolatedPosition");
+    if (slot == nullptr) {
+        return std::nullopt;
+    }
+
+    const Point3 current = fromBox3d(b3Body_GetPosition(slot->body));
+    const Point3 previous = slot->previousPosition;
+    return Point3{
+        previous.x + (current.x - previous.x) * alpha,
+        previous.y + (current.y - previous.y) * alpha,
+        previous.z + (current.z - previous.z) * alpha,
+    };
+}
+
+void PhysicsWorld::forEachBody(double alpha,
+                               const std::function<void(const BodyView&)>& visit) const {
+    // Index order, which is stable: slots are only ever appended or recycled in
+    // place, so two identical runs visit bodies in the same order
+    // (engine_protocol.md - stable iteration order).
+    for (uint32_t index = 0; index < impl_->slots.size(); ++index) {
+        const Impl::Slot& slot = impl_->slots[index];
+        if (!slot.alive) {
+            continue;
+        }
+
+        const Point3 current = fromBox3d(b3Body_GetPosition(slot.body));
+        const Point3 previous = slot.previousPosition;
+
+        visit(BodyView{
+            BodyHandle{ index, slot.generation },
+            Point3{
+                previous.x + (current.x - previous.x) * alpha,
+                previous.y + (current.y - previous.y) * alpha,
+                previous.z + (current.z - previous.z) * alpha,
+            },
+            slot.shape,
+            slot.type,
+        });
+    }
+}
+
+namespace {
+
+/// Bridges Box3D's C callbacks to our renderer.
+///
+/// A pointer to this is handed to Box3D as the opaque `context`, so every
+/// callback can reach the renderer without a global.
+struct SolverDrawBridge {
+    platform::Renderer* renderer;
+};
+
+platform::Renderer& rendererFrom(void* context) {
+    return *static_cast<SolverDrawBridge*>(context)->renderer;
+}
+
+/// b3HexColor packs RGB into a single integer.
+platform::Color fromHex(b3HexColor hex) {
+    const auto value = static_cast<uint32_t>(hex);
+    return platform::Color{
+        static_cast<uint8_t>((value >> 16) & 0xFF),
+        static_cast<uint8_t>((value >> 8) & 0xFF),
+        static_cast<uint8_t>(value & 0xFF),
+        255,
+    };
+}
+
+Point3 pointFrom(b3Pos p) {
+    return Point3{ p.x, p.y, p.z };
+}
+
+void drawSegment(b3Pos p1, b3Pos p2, b3HexColor color, void* context) {
+    rendererFrom(context).drawLine(pointFrom(p1), pointFrom(p2), fromHex(color));
+}
+
+void drawPoint(b3Pos p, float size, b3HexColor color, void* context) {
+    rendererFrom(context).drawPoint(pointFrom(p), size, fromHex(color));
+}
+
+void drawSphere(b3Pos p, float radius, b3HexColor color, float /*alpha*/, void* context) {
+    rendererFrom(context).drawWireSphere(pointFrom(p), radius, fromHex(color));
+}
+
+void drawBounds(b3AABB aabb, b3HexColor color, void* context) {
+    const Point3 center{
+        (static_cast<double>(aabb.lowerBound.x) + aabb.upperBound.x) * 0.5,
+        (static_cast<double>(aabb.lowerBound.y) + aabb.upperBound.y) * 0.5,
+        (static_cast<double>(aabb.lowerBound.z) + aabb.upperBound.z) * 0.5,
+    };
+    const Vec3 halfExtents{
+        (aabb.upperBound.x - aabb.lowerBound.x) * 0.5f,
+        (aabb.upperBound.y - aabb.lowerBound.y) * 0.5f,
+        (aabb.upperBound.z - aabb.lowerBound.z) * 0.5f,
+    };
+    rendererFrom(context).drawWireBox(center, halfExtents, fromHex(color));
+}
+
+void drawCapsule(b3Pos p1, b3Pos p2, float radius, b3HexColor color, float /*alpha*/,
+                 void* context) {
+    // Approximated as a segment plus end caps. No capsule shapes exist yet;
+    // this is here so the callback is never null.
+    platform::Renderer& renderer = rendererFrom(context);
+    const platform::Color c = fromHex(color);
+    renderer.drawLine(pointFrom(p1), pointFrom(p2), c);
+    renderer.drawWireSphere(pointFrom(p1), radius, c);
+    renderer.drawWireSphere(pointFrom(p2), radius, c);
+}
+
+void drawTransform(b3WorldTransform transform, void* context) {
+    // Origin marker only. Drawing the axes needs the quaternion rotated into
+    // basis vectors, which is more than a diagnostic needs today.
+    rendererFrom(context).drawPoint(pointFrom(transform.p), 0.1f,
+                                    platform::Color{ 255, 255, 0, 255 });
+}
+
+void drawString(b3Pos p, const char* /*text*/, b3HexColor color, void* context) {
+    // No world-space text yet. Marked with a point so the information is not
+    // silently lost.
+    rendererFrom(context).drawPoint(pointFrom(p), 0.05f, fromHex(color));
+}
+
+void drawUserShape(void* /*userShape*/, b3WorldTransform transform, b3HexColor color,
+                   void* context) {
+    // Only reached if debug shape callbacks were registered, which they are not.
+    rendererFrom(context).drawPoint(pointFrom(transform.p), 0.1f, fromHex(color));
+}
+
+void drawBox(b3Vec3 extents, b3WorldTransform transform, b3HexColor color, void* context) {
+    // Rotation is dropped: the renderer only draws axis-aligned boxes today.
+    // Correct for the level geometry we author, and wrong the moment a rotated
+    // body exists - which is why oriented boxes belong with the real renderer,
+    // not this diagnostic.
+    rendererFrom(context).drawWireBox(pointFrom(transform.p),
+                                      Vec3{ extents.x, extents.y, extents.z },
+                                      fromHex(color));
+}
+
+} // namespace
+
+void PhysicsWorld::debugDrawSolver(platform::Renderer& renderer,
+                                   const SolverDebugOptions& options) const {
+    SolverDrawBridge bridge{ &renderer };
+
+    // Every callback is supplied, including ones this project has no use for.
+    // The header says null functions are skipped; in practice leaving any unset
+    // segfaults, so the contract is "provide them all".
+    b3DebugDraw draw{};
+    draw.context = &bridge;
+    draw.DrawSegmentFcn = &drawSegment;
+    draw.DrawPointFcn = &drawPoint;
+    draw.DrawSphereFcn = &drawSphere;
+    draw.DrawCapsuleFcn = &drawCapsule;
+    draw.DrawBoundsFcn = &drawBounds;
+    draw.DrawBoxFcn = &drawBox;
+    draw.DrawTransformFcn = &drawTransform;
+    draw.DrawStringFcn = &drawString;
+    draw.DrawShapeFcn = &drawUserShape;
+
+    // Scales Box3D uses when drawing forces and joints. Left at zero these can
+    // produce degenerate geometry.
+    draw.forceScale = 1.0f;
+    draw.jointScale = 1.0f;
+
+    // Culling bounds. Without a generous volume here everything is culled and
+    // the overlay silently draws nothing.
+    constexpr float kFar = 1.0e6f;
+    draw.drawingBounds = b3AABB{ b3Vec3{ -kFar, -kFar, -kFar }, b3Vec3{ kFar, kFar, kFar } };
+
+    draw.drawShapes = options.shapes;
+    draw.drawContacts = options.contacts;
+    draw.drawContactNormals = options.contactNormals;
+    draw.drawBounds = options.bounds;
+    draw.drawMass = options.centerOfMass;
+
+    // All collision categories.
+    b3World_Draw(impl_->world, &draw, UINT64_MAX);
 }
 
 int PhysicsWorld::bodyCount() const {

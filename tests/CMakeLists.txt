@@ -4,6 +4,7 @@
 add_executable(engine_tests
   engine/dependencies_test.cpp
   engine/physics_test.cpp
+  engine/debug_renderer_test.cpp
   engine/fixed_step_test.cpp
   engine/simulation_constants_test.cpp
   engine/event_dispatch_test.cpp
