@@ -35,14 +35,32 @@ if [ -d src/game ]; then
   report "gameplay reaches the platform layer" "src/game/" "platform/ headers" "$hits"
 fi
 
-# 3. raylib is a platform concern. The engine wraps it via platform, never
+# 3. The platform layer is the bottom. It must not reach up into the engine or
+#    the game.
+#
+#    This rule was missing until an engine-owned type was very nearly used from
+#    a platform header. The gate checked that upper layers did not reach DOWN
+#    past their neighbour, and never that the bottom layer reached UP - which is
+#    the more insidious direction, because it compiles perfectly.
+if [ -d src/platform ]; then
+  hits=$(grep -rn -E '#include\s*[<"](engine|game)/' src/platform 2>/dev/null || true)
+  report "the platform layer reaches upward" "src/platform/" "engine/ or game/ headers" "$hits"
+fi
+
+# 4. The engine must not reach up into the game either.
+if [ -d src/engine ]; then
+  hits=$(grep -rn -E '#include\s*[<"]game/' src/engine 2>/dev/null || true)
+  report "the engine reaches up into the game" "src/engine/" "game/ headers" "$hits"
+fi
+
+# 5. raylib is a platform concern. The engine wraps it via platform, never
 #    directly, so swapping the windowing library stays platform-local.
 if [ -d src/engine ]; then
   hits=$(grep -rn -E '#include\s*[<"](raylib\.h|rlgl\.h)' src/engine 2>/dev/null || true)
   report "engine reaches raylib directly" "src/engine/" "raylib headers" "$hits"
 fi
 
-# 4. Tests must run headless, in CI, with no window and no GPU
+# 6. Tests must run headless, in CI, with no window and no GPU
 #    (game_test_protocol.md). The linux-test preset does not even fetch raylib,
 #    so this is belt-and-braces, but it fails with a clear message rather than
 #    an opaque "file not found".

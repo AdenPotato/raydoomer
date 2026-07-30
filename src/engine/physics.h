@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine/violation.h"
+#include "platform/violation.h"
 #include "platform/math_types.h"
 #include "platform/renderer.h"
 
@@ -11,6 +11,11 @@
 #include <variant>
 
 namespace engine {
+
+// Lives in platform/ so the renderer seam can use it too; aliased here so
+// callers still write engine::ViolationReporter.
+using platform::ViolationReporter;
+using platform::defaultViolationReporter;
 
 class EventDispatcher;
 
