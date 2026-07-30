@@ -1,73 +1,109 @@
-# QA Protocol (template)
+# QA Protocol
 
-How manual QA is run and recorded, on top of the automated in-repo gate (typecheck, lint, tests, build) that runs before any PR. This file is a **template** - fill in the bracketed parts for your project, or delete the sections that do not apply (a project leaning hard on automated tests may need very little here).
+How playtesting is run and recorded, on top of the automated gates that run before any PR.
 
----
-
-## When manual QA is required
-
-| Change type                                                            | Manual QA                               |
-|------------------------------------------------------------------------|-----------------------------------------|
-| User-facing behavior (screens, auth, navigation, anything a user sees) | **Required before merge**               |
-| Service-only change covered by integration tests                       | Not required - automated checks suffice |
-| Docs, protocol, CI, tooling, types, refactors with no behavior change  | Not required - automated checks suffice |
-
-If in doubt, treat it as user-facing.
-
-**Where this gate sits (dev-branch model):** app work merges to **`dev`** via PR (CI-gated). A change needing manual QA is labeled **`needs-qa`** on `dev`; a reviewer exercises it and applies **`qa-passed`**. `qa-passed` is the prerequisite for the maintainer-only `dev -> main` promotion (see [core_protocol.md](core_protocol.md#branching-model-dev-integration) + [session_protocol.md](session_protocol.md#enforcement-rules) Rule 11). The agent never merges to `main`.
+This document exists because of a hard limit: **the agent cannot see or hear the game.** Everything about feel, timing and visual quality is invisible to it. `game_test_protocol.md` names that as the one documented exception to test-first, and this file is where the exception lands. A change routed here is not unverified - it is verified by a human, deliberately, against written criteria.
 
 ---
 
-## Roles
+## When a playtest is required
 
-`<List who runs QA and how coverage is split - e.g. by platform, by surface, or round-robin. A change may merge once its required coverage is checked off.>`
+| Change type                                                                                                  | Playtest                                  |
+|--------------------------------------------------------------------------------------------------------------|-------------------------------------------|
+| Anything feel-tuned - movement, weapons, camera, timing, pacing                                              | **Required before promotion**             |
+| Anything visual beyond what a golden image captures                                                          | **Required before promotion**             |
+| Audio                                                                                | **Required** - a mocked device proves nothing about how it sounds |
+| A tuning value change, however small                                     | **Required** - a balance change silently invalidates every playtest before it |
+| Pure logic covered by simulation tests - loaders, save data, maths                                           | Not required, automated checks suffice    |
+| Docs, protocol, CI, tooling, refactors with no behaviour change                                              | Not required                              |
+
+If in doubt, treat it as needing a playtest. The cost of one is a few minutes; the cost of shipping a movement change nobody moved with is discovering it three features later.
+
+**Where this gate sits:** work merges to `dev` via a CI-gated PR. A change needing a playtest is labelled **`needs-qa`**; once exercised it gets **`qa-passed`**, which is a prerequisite for the maintainer-only `dev -> main` promotion ([core_protocol.md](core_protocol.md#branching-model-dev-integration), [session_protocol.md](session_protocol.md#enforcement-rules) Rule 11). The agent never merges to `main`.
 
 ---
 
-## Ready-to-test handoff (acceptance criteria)
+## The agent cannot playtest
 
-When the agent has a feature branch green (CI passing) and ready for QA, **before** the reviewer exercises it, the agent posts the **acceptance criteria** as a checkbox list - the observable behaviors to verify (one box per behavior). The reviewer ticks each box. When QA passes, the PR carries the same checklist as the durable record.
+Stated plainly because it governs everything below.
+
+- **Every feel claim from the agent is a hypothesis.** "The dash feels snappier" is not a result; "the dash cooldown is now 0.4s and a test asserts it" is.
+- **A green test is not a working feature.** It is evidence about the slice it covers, and the agent must say which slice.
+- **The agent separates what it verified from what it changed** in every PR touching this territory.
+
+Confabulating a play experience is the single most damaging thing that can happen here, because it is the one claim nobody can check without stopping to run the game.
 
 ---
 
-## Per-PR QA checklist convention
+## Running a playtest
 
-Every user-facing PR carries a **QA checklist as checkboxes in the PR description**. The author seeds it; testers tick boxes and note environment next to each.
+1. **Read the criteria first.** The PR carries a checklist of observable behaviours. Read it before playing, so you know what you are looking for rather than forming an impression and rationalising it.
+2. **Play the specific thing.** Not a general session. If the change is about air control, jump repeatedly and move in the air.
+3. **Tick or fail each box**, noting the environment beside it.
+4. **Describe failures observably.** "Turning feels sluggish above 100fps" is actionable. "Feels off" is not.
 
-- On open, label the PR **`needs-qa`** - by convention it is not merged while this label is on.
-- When the required coverage is checked off, swap the label to **`qa-passed`**; the PR is then mergeable.
-- A failed case -> comment with environment + repro, leave `needs-qa`, fix, re-QA.
+---
 
-A reusable checklist shape (adapt per feature):
+## Reporting feel feedback
+
+Vague feel feedback is the most common instruction in game development and the most dangerous to act on directly. Guessing produces a rewrite that changes ten things, nine of which were fine.
+
+`gameplay_protocol.md` requires this shape, and it is worth following as a tester too:
+
+1. **Restate the symptom observably** - what happens, when, and what you expected instead.
+2. **Name the tunable you think is responsible**, if you have a guess.
+3. **State the direction** - which value, moving which way.
+4. **One change at a time.** Two at once and you cannot attribute the result.
+5. **Re-playtest.** A balance change invalidates every playtest that came before it.
+
+If no existing tunable can produce the requested change, that is the finding. The agent reports it and proposes the smallest new tunable rather than restructuring a system on a hunch.
+
+---
+
+## Per-PR checklist convention
+
+Every playtest-requiring PR carries its checklist as checkboxes in the description. The agent seeds it from the issue's acceptance criteria; the tester ticks them.
+
+- On open, label **`needs-qa`**. By convention it is not promoted while that label is on.
+- When coverage is checked off, swap to **`qa-passed`**.
+- A failure gets a comment with environment and repro steps; the label stays `needs-qa`.
 
 ```
-## QA checklist (manual)
-- [ ] <setup / config step>
-- [ ] <build / run step per environment>
-- [ ] <test case>  - _tester, environment_
+## Playtest checklist
+- [ ] <observable behaviour>  - _tester, build, resolution, refresh rate_
+- [ ] <edge case>
+- [ ] Frame time stayed within budget - _measured, not impression_
 ```
 
 ---
 
-## Environment matrix (template)
+## Environment
 
-Kept current as setups change. Fill in the columns relevant to your project (OS, devices, browsers, toolchain versions, accounts).
+What actually varies for this project, and therefore what is worth recording next to a result.
 
-| Tester   | OS / machine | Toolchain    | Devices / browsers | Accounts |
-|----------|--------------|--------------|--------------------|----------|
-| `<name>` | `<os>`       | `<versions>` | `<targets>`        | `<...>`  |
+| Field         | Why it matters                                                                                                                                      |
+|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| Build preset  | `windows-debug` has asserts and the debug view; `windows-release` does not                                                                          |
+| Commit        | So a result can be tied to an exact build                                                                                                           |
+| GPU + driver  | Rendering differences and frame rate both track it                                                                                                  |
+| Resolution    | HUD layout and readability depend on it; verify the smallest supported one                                                                          |
+| Refresh rate  | **The one most often forgotten.** Simulation runs at a fixed 60Hz while presentation is uncapped, so a frame-rate dependency only shows above 60fps |
+| Input device  | Mouse DPI and sensitivity change how movement and aiming feel                                                                                       |
+
+> **Test above 60fps at least once per feel change.** The fixed-step loop exists to make the game behave identically at any frame rate. A bug in that is invisible at 60 and obvious at 144, and testing only at 60 is how it ships.
 
 ---
 
 ## Test data
 
-- **Standing test user / account** - `<describe how to reach auth-gated surfaces without real credentials, e.g. a provider test mode>`.
-- **Mocks (no live dependencies):** `<describe the mock toggle and how to enter the app as a guest>`.
-- **Never use production credentials or copy production data for QA** - dev/sandbox only; production data is PII.
+- **Levels and content come from `data/`**, which is committed and synthetic. There is no production data and no accounts.
+- **`resources/` holds copyrighted Doom data for local prototyping only.** It is gitignored and never ships. A playtest that is checking distribution readiness must run against FreeDoom instead.
+- **Saves are versioned.** When testing a save-affecting change, keep a save from the previous version to exercise the migration.
 
 ---
 
-## Recording & sign-off
+## Recording and sign-off
 
-- The PR's checked QA boxes (with environment notes) are the durable record - they live with the change.
-- `qa-passed` label = sign-off that required coverage ran green.
+- The PR's ticked checklist, with environment notes, is the durable record. It lives with the change.
+- **`qa-passed` means the required coverage ran green on a real build**, not that it looked fine in a screenshot.
+- A re-baked golden image is a reviewed change: say why in the commit, and treat an unexplained re-bake as a red flag ([game_test_protocol.md](game_test_protocol.md)).

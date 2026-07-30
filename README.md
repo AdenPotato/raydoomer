@@ -10,15 +10,15 @@ Fast movement and shooting in the Doom tradition - 3D level geometry, 2D billboa
 
 ## Stack
 
-| | |
-|---|---|
-| Language | C++23 |
+| ---------------------------------------------------------------------| |
+|--------------------------------------------------------------------|---|
+| Language                                                       | C++23 |
 | Windowing, input, audio, rendering | [raylib](https://www.raylib.com/) |
-| Physics | [Box3D](https://github.com/erincatto/box3d) |
-| Data and saves | [nlohmann/json](https://github.com/nlohmann/json) |
-| Tests | GoogleTest + GoogleMock |
-| Build | CMake + FetchContent |
-| Target | Windows, cross-compiled with MinGW-w64 |
+| Physics | [Box3D](https://github.com/erincatto/box3d)                  |
+| Data and saves | [nlohmann/json](https://github.com/nlohmann/json)     |
+| Tests | GoogleTest + GoogleMock                                        |
+| Build | CMake + FetchContent                                           |
+| Target | Windows, cross-compiled with MinGW-w64                        |
 
 Every dependency is fetched by CMake. There is nothing to install by hand except the toolchain.
 
@@ -40,11 +40,11 @@ You also need a host compiler supporting C++23 for the test build (GCC 14 or new
 
 ### Three presets
 
-| Preset | What it builds | When |
-|---|---|---|
-| `linux-test` | The test suite, headless | Every change |
+| Preset | What it builds                                              | When |
+|---------------------------------------------------------------------|---|---|
+| `linux-test` | The test suite, headless                      | Every change |
 | `windows-debug` | `doomer.exe` with asserts and the debug view | Day-to-day |
-| `windows-release` | `doomer.exe`, shipping configuration | Releases |
+| `windows-release` | `doomer.exe`, shipping configuration         | Releases |
 
 ```bash
 # Run the tests
@@ -70,10 +70,10 @@ cp build/windows-debug/src/doomer.exe /mnt/c/Users/<you>/doomer/
 
 ## Debug controls
 
-| Key | Does |
-|---|---|
-| F1 | Toggle the debug view |
-| F2 | Cycle wireframe / solid / both |
+| Key | Does                                                             |
+|--------------------------------------------------------------------|---|
+| F1 | Toggle the debug view                                             |
+| F2 | Cycle wireframe / solid / both                                    |
 | F3 | Toggle the Box3D solver overlay - real contact points and normals |
 
 The debug view is on in a debug build and off in a release build.
@@ -109,12 +109,12 @@ Verifying that swap gates any release.
 
 ## Documentation
 
-| | |
-|---|---|
+| --------------------------------------------------------------------------------------------------| |
+|-------------------------------------------------------------------------------------------------|---|
 | [Runtime architecture](docs/design/runtime_architecture.md) | How the game is put together, and why |
-| [Locked decisions](docs/reference/locked_decisions.md) | Settled choices and the open questions |
-| [Protocols](docs/protocol/) | Engine, gameplay, content, presentation, testing |
-| [Glossary](docs/reference/glossary.md) | Shared vocabulary |
+| [Locked decisions](docs/reference/locked_decisions.md)     | Settled choices and the open questions |
+| [Protocols](docs/protocol/) | Engine, gameplay, content, presentation, testing                      |
+| [Glossary](docs/reference/glossary.md)                                          | Shared vocabulary |
 
 ## Development process
 
